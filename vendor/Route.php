@@ -91,6 +91,10 @@ class Route
         else if ($matches = $this->match('/\/(.*\.(gif|jpg|png|png))$/'))
             $this->initiateImage($matches[1]);
 
+            /** Other Element */
+        else if ($matches = $this->match('/\/(.*)$/') && file_exists(Option::ASSET_DIR.$matches[1]))
+            return file_get_contents(Option::ASSET_DIR.$matches[1]);
+
             /** Default Element */
         else
             return (new Twig())->render("index.twig");
