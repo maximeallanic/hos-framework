@@ -10,6 +10,7 @@ $startTime = microtime(true);
 
 require_once "../../autoload.php";
 
+use Hos\ExceptionExt;
 use Hos\Header;
 use Hos\Option;
 use Monolog\Handler\StreamHandler;
@@ -21,7 +22,9 @@ error_reporting(E_ALL);
 
 try {
     if (!extension_loaded('yaml'))
-        throw new Exception("No Yaml Library");
+        throw new ExceptionExt("No Yaml Library");
+    if (!extension_loaded('gd'))
+        throw new ExceptionExt("No GD Library");
 
     if (Option::isDev()) {
         ini_set('display_errors', 1);
@@ -38,7 +41,7 @@ try {
     $route = new \Hos\Route();
     echo $route->dispatch();
 
-} catch(Exception $e) {
+} catch(ExceptionExt $e) {
     echo "error ".$e->getMessage();
     //echo (new Twig())->render("error.twig", ['error' => $e]);
 }

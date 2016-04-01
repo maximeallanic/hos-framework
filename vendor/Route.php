@@ -16,6 +16,12 @@ use Assetic\Factory\AssetFactory;
 use Assetic\Filter\CompassFilter;
 use Assetic\Filter\Yui\CssCompressorFilter;
 use Assetic\FilterManager;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Stream;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
+use League\Glide\Responses\PsrResponseFactory;
+use League\Glide\ServerFactory;
 use Luracast\Restler\Restler;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
@@ -56,8 +62,13 @@ class Route
         $rest->handle();
     }
 
-    public function initiateTwig($file) {
-
+    public function initiateImage($file) {
+        $service = ServerFactory::create([
+            "source" => Option::ASSET_DIR,
+            "cache" => Option::TEMPORARY_ASSET_DIR,
+            "watermarks" => Option::ASSET_DIR
+        ]);
+        $service->outputImage($file, $_GET);
     }
 
     public function dispatch() {
@@ -67,10 +78,20 @@ class Route
         /** Api */
         else if ($matches = $this->match('/^\/api\/(.*)/'))
             $this->initiateAPI($matches[1]);
+
+            /** Twig Element */
         else if ($matches = $this->match('/\/(.*)\.html$/'))
             return (new Twig())->render($matches[1].".twig");
+
+            /** CSS and JS Element */
         else if ($matches = $this->match('/\/(.*\.(css|js))$/'))
             return (new Twig())->renderAssets($matches[1], $matches[2]);
+
+            /** Picture Element */
+        else if ($matches = $this->match('/\/(.*\.(gif|jpg|png|png))$/'))
+            $this->initiateImage($matches[1]);
+
+            /** Default Element */
         else
             return (new Twig())->render("index.twig");
     }
