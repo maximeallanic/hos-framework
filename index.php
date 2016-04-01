@@ -6,15 +6,26 @@
  * Time: 18:05
  */
 
+require_once "../../autoload.php";
+
 use Hos\Option;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once "../autoload.php";
+try {
+    if (!extension_loaded('yaml'))
+        throw new Exception("No Yaml Library");
+    if (Option::isDev()) {
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
+    }
+} catch(Exception $e) {
+    echo "error";
+}
 
-echo Option::get();
 /**
 
 define('DEV', true);
