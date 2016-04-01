@@ -80,15 +80,15 @@ class Route
             $this->initiateAPI($matches[1]);
 
             /** Twig Element */
-        else if ($matches = $this->match('/\/(.*)\.html$/'))
+        else if ($matches = $this->match('/\/(.*)\.html$/') && file_exists(Option::ASSET_DIR.$matches[1].".html"))
             return (new Twig())->render($matches[1].".twig");
 
             /** CSS and JS Element */
-        else if ($matches = $this->match('/\/(.*\.(css|js))$/'))
+        else if ($matches = $this->match('/\/(.*\.(css|js))$/') && file_exists(Option::TEMPORARY_ASSET_DIR.$matches[1]))
             return (new Twig())->renderAssets($matches[1], $matches[2]);
 
             /** Picture Element */
-        else if ($matches = $this->match('/\/(.*\.(gif|jpg|png|png))$/'))
+        else if ($matches = $this->match('/\/(.*\.(gif|jpg|png|png))$/') && file_exists(Option::ASSET_DIR.$matches[1]))
             $this->initiateImage($matches[1]);
 
             /** Other Element */
