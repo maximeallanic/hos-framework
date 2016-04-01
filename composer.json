@@ -13,7 +13,6 @@
     ],
     "require": {
         "luracast/restler": "3.0.0",
-        "propel/propel": "~2.0@dev",
         "monolog/monolog": "^1.18",
         "twig/twig": "~1.0",
         "kriswallsmith/assetic": "~1.3",
