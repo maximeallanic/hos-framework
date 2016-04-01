@@ -22,8 +22,10 @@ try {
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
     }
+    $route = new \Hos\Route();
+    $route->route();
 } catch(Exception $e) {
-    echo "error";
+    echo "error ".$e->getMessage();
 }
 
 /**
