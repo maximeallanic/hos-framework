@@ -16,12 +16,16 @@
         "twig/twig": "~1.0",
         "kriswallsmith/assetic": "~1.3",
         "zendframework/zend-config": "~2.6",
+        "luracast/restler": "3.0.0-RC6",
         "php": ">= 7.0.0"
     },
     "autoload": {
         "psr-4":{
             "Hos\\": "vendor/"
         }
+    },
+    "scripts": {
+        "generate-js-api-angular": ["Hos\\Command\\GenerateJSApi::execute"]
     }
 
 }

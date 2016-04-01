@@ -24,6 +24,10 @@ class Option
         ],
         'api' => [
             'namespace' => 'Api'
+        ],
+        'bin' => [
+            'compass' => '/usr/bin/compass',
+            'yuicompressor' => '/usr/bin/yui-compressor'
         ]
     ];
 
@@ -31,6 +35,9 @@ class Option
     CONST APP_DIR = self::ROOT_DIR . "app/";
     CONST LOG_DIR = self::APP_DIR . "log/";
     CONST CONF_DIR = self::APP_DIR . "conf/";
+    CONST ASSET_DIR = self::ROOT_DIR . "asset/";
+    CONST TEMPORARY_DIR = self::APP_DIR . "tmp/";
+    CONST TEMPORARY_ASSET_DIR = self::TEMPORARY_DIR ."asset/";
 
     CONST CONF_FILE = self::CONF_DIR . "conf.yaml";
 
@@ -60,5 +67,9 @@ class Option
         $config = new Config($array, true);
         self::$writer->toFile(self::CONF_FILE, $config);
             //throw new \Exception("No Write Access");
+    }
+
+    static function getBaseUrl() {
+        return Option::get()['protocol']."://".Option::get()['domain'];
     }
 }

@@ -6,9 +6,14 @@
  * Time: 18:05
  */
 
+$startTime = microtime(true);
+
 require_once "../../autoload.php";
 
+use Hos\Header;
 use Hos\Option;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -17,65 +22,28 @@ error_reporting(E_ALL);
 try {
     if (!extension_loaded('yaml'))
         throw new Exception("No Yaml Library");
+
     if (Option::isDev()) {
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
     }
+
+    /** Log */
+    $defaultLogger = new Logger('hos');
+    $logFile = Option::LOG_DIR.Option::get()['environment'].".log";
+    $defaultLogger->pushHandler(new StreamHandler($logFile, Logger::WARNING));
+
+    /** Route */
     $route = new \Hos\Route();
-    $route->route();
+    echo $route->dispatch();
+
 } catch(Exception $e) {
     echo "error ".$e->getMessage();
+    //echo (new Twig())->render("error.twig", ['error' => $e]);
 }
 
-/**
+$endTime = microtime(true);
 
-define('DEV', true);
-define('QUERY', strtok($_SERVER['REQUEST_URI'], '?'));
-define('DOCUMENT_ROOT', $_SERVER['DOCUMENT_ROOT']);
-if (DEV) {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-}
-
-
-
-
-function requestFile() {
-    if (!preg_match("/^(.*)\.((?:(?!\.).)*)$/", QUERY, $matches))
-        return false;
-    return $matches;
-}
-
-function generateTwig($file) {
-    $am = new AssetManager();
-    $am->set('jquery', new FileAsset('public/javascripts'));
-    $am->set('base_css', new GlobAsset('public/compass'));
-
-    $fm = new FilterManager();
-    $fm->set('compass', new CompassFilter('/path/to/parser/sass'));
-    $fm->set('yui_css', new CssCompressorFilter('/path/to/yuicompressor.jar'));
-
-    $factory = new AssetFactory('/path/to/asset/directory/');
-    $factory->setAssetManager($am);
-    $factory->setFilterManager($fm);
-    $factory->setDebug(DEV);
-
-    $loader = new Twig_Loader_Filesystem(DOCUMENT_ROOT.'/public/templates/');
-    $twig = new Twig_Environment($loader, array());
-    $twig->addExtension(new AsseticExtension($factory));
-    return $twig->render($file.'.twig', array(
-        'name'> 'Fabien'
-    ));
-}
-
-try {
-    if (!($file = requestFile()))
-        echo generateTwig('index');
-    if ($file[2] == 'html') {
-        echo generateTwig($file[1]);
-    }
-} catch (Exception $e) {
-    echo $e->getMessage();
-}**/
+Header::set('Time-Execution', ($endTime - $startTime)."s");
+Header::set('Server', 'Hos');
