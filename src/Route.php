@@ -28,11 +28,36 @@ use Twig_Loader_Filesystem;
 
 class Route
 {
+    static $DEFAULT_ROUTE = [];
     private $query;
 
     public function __construct()
     {
         $this->query = strtok($_SERVER['REQUEST_URI'], '?');
+
+        self::$DEFAULT_ROUTE = [
+            '/^\/api\/doc\/(.*)/' => function ($matches) {
+                return file_get_contents(__DIR__."/../doc/".($matches[1] ? $matches[1] : "index.html"));
+            },
+            '/^\/api\/(.*)/' => function ($matches) {
+                $this->initiateAPI($matches[1]);
+            },
+            '/\/(.*)\.html$/' => function ($matches) {
+                return (new Twig())->render($matches[1] . ".twig");
+            },
+            '/\/(.*\.(css|js))$/' => function ($matches) {
+                return (new Twig())->renderAssets($matches[1], $matches[2]);
+            },
+            '/\/(.*\.(gif|jpg|png|png))$/' => function ($matches){
+                $this->initiateImage($matches[1]);
+            },
+            '/\/(.*)$/' => function ($matches) {
+                return file_get_contents(Option::ASSET_DIR.$matches[1]);
+            },
+            '/(.*)/' => function ($matches) {
+                return (new Twig())->render("index.twig");
+            }
+        ];
     }
 
     private function match($regex) {
@@ -72,31 +97,9 @@ class Route
     }
 
     public function dispatch() {
-        /** API Doc */
-        if ($matches = $this->match('/^\/api\/doc\/(.*)/'))
-            return file_get_contents(__DIR__."/../doc/".($matches[1] ? $matches[1] : "index.html"));
-        /** Api */
-        else if ($matches = $this->match('/^\/api\/(.*)/'))
-            $this->initiateAPI($matches[1]);
-
-            /** Twig Element */
-        else if ($matches = $this->match('/\/(.*)\.html$/') && file_exists(Option::ASSET_DIR.$matches[1].".html"))
-            return (new Twig())->render($matches[1].".twig");
-
-            /** CSS and JS Element */
-        else if ($matches = $this->match('/\/(.*\.(css|js))$/') && file_exists(Option::TEMPORARY_ASSET_DIR.$matches[1]))
-            return (new Twig())->renderAssets($matches[1], $matches[2]);
-
-            /** Picture Element */
-        else if ($matches = $this->match('/\/(.*\.(gif|jpg|png|png))$/') && file_exists(Option::ASSET_DIR.$matches[1]))
-            $this->initiateImage($matches[1]);
-
-            /** Other Element */
-        else if ($matches = $this->match('/\/(.*)$/') && file_exists(Option::ASSET_DIR.$matches[1]))
-            return file_get_contents(Option::ASSET_DIR.$matches[1]);
-
-            /** Default Element */
-        else
-            return (new Twig())->render("index.twig");
+        foreach(self::$DEFAULT_ROUTE as $reg => $function)
+            if ($matches = $this->match($reg))
+                if ($result = $function($matches))
+                    return $result;
     }
 }

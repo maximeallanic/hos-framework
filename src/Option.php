@@ -12,6 +12,8 @@ use Zend\Config\Config;
 use Zend\Config\Reader;
 use Zend\Config\Writer;
 
+define("ROOT_DIR", realpath(__DIR__ . "/../../../../") . "/");
+
 class Option
 {
     CONST DEFAULT_OPTIONS = [
@@ -28,10 +30,18 @@ class Option
         'bin' => [
             'compass' => '/usr/bin/compass',
             'yuicompressor' => '/usr/bin/yui-compressor'
+        ],
+        'twig' => [
+            'lexer' => [
+                'tagcomment' => ["<%#", "%>"],
+                'tagblock' => ["<%", "%>"],
+                'tagvariable' => ["<%=", "%>"],
+                'interpolation' => ["#{", "}"]
+            ]
         ]
     ];
 
-    CONST ROOT_DIR = __DIR__ . "/../../../../";
+    CONST ROOT_DIR = ROOT_DIR;
     CONST APP_DIR = self::ROOT_DIR . "app/";
     CONST LOG_DIR = self::APP_DIR . "log/";
     CONST CONF_DIR = self::APP_DIR . "conf/";
@@ -52,6 +62,7 @@ class Option
             if (!file_exists(self::CONF_FILE))
                 throw new \Exception("No Conf File");
             self::$options = self::$reader->fromFile(self::CONF_FILE);
+            self::$options = array_merge(self::DEFAULT_OPTIONS, self::$options);
         }
         return self::$options;
     }

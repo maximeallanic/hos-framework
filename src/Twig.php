@@ -23,7 +23,11 @@ use Assetic\Filter\CompassFilter;
 use Assetic\Filter\Yui\CssCompressorFilter;
 use Assetic\Filter\Yui\JsCompressorFilter;
 use Assetic\FilterManager;
+use MatTheCat\Twig\Extension\WhitespaceCollapser;
 use Twig_Environment;
+use Twig_Extension_Optimizer;
+use Twig_Extension_Sandbox;
+use Twig_Lexer;
 use Twig_Loader_Filesystem;
 
 class Twig
@@ -49,16 +53,36 @@ class Twig
         $this->factory->setDebug(Option::isDev());
 
         $this->twigLoader = new Twig_Loader_Filesystem(Option::ASSET_DIR);
+
+        /** Set For Environment */
         $argument = array(
-            'debug' => Option::isDev()
+            'debug' => Option::isDev(),
+            'optimizations' => -1
         );
         if (!Option::isDev()) {
             $argument['cache'] = Option::TEMPORARY_DIR;
             $this->factory->addWorker(new CacheBustingWorker());
         }
+
         $this->twig = new Twig_Environment($this->twigLoader, $argument);
+
+        /** Customize Twig */
+
+
         $this->twig->addGlobal('api', new Api());
+        $this->twig->addExtension(new WhitespaceCollapser(['twig', 'html', 'svg', 'xml']));
         $this->twig->addExtension(new AsseticExtension($this->factory));
+        $this->twig->addExtension(new Twig_Extension_Optimizer());
+
+        $optionsLexer = Option::get()['twig']['lexer'];
+        $lexer = new Twig_Lexer($this->twig, array(
+            'tag_comment'   => $optionsLexer['tagcomment'],
+            'tag_block'     => $optionsLexer['tagblock'],
+            'tag_variable'  => $optionsLexer['tagvariable'],
+            'interpolation' => $optionsLexer['interpolation'],
+        ));
+        $this->twig->setLexer($lexer);
+
     }
 
     function render($file, $array = []) {
