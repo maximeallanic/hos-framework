@@ -10,6 +10,7 @@ $startTime = microtime(true);
 
 require_once "../../autoload.php";
 
+use Hos\BDD;
 use Hos\ExceptionExt;
 use Hos\Header;
 use Hos\Option;
@@ -36,6 +37,9 @@ try {
     $defaultLogger = new Logger('hos');
     $logFile = Option::LOG_DIR.Option::get()['environment'].".log";
     $defaultLogger->pushHandler(new StreamHandler($logFile, Logger::WARNING));
+
+    /** BDD */
+    new BDD();
 
     /** Route */
     $route = new \Hos\Route();

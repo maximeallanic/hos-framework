@@ -18,14 +18,18 @@ class Option
 {
     CONST DEFAULT_OPTIONS = [
         "environment" => "prod",
+        "domain" => "localhost",
+        "protocol" => "http",
         "database" => [
+            "db" => "default",
             "host" => "localhost",
             "type" => "pgsql",
             "user" => "root",
-            "password" => ""
+            "password" => "",
+            "generated_classes" => "src/"
         ],
         'api' => [
-            'namespace' => 'Api'
+            'classes' => []
         ],
         'bin' => [
             'compass' => '/usr/bin/compass',
@@ -48,6 +52,7 @@ class Option
     CONST ASSET_DIR = self::ROOT_DIR . "asset/";
     CONST TEMPORARY_DIR = self::APP_DIR . "tmp/";
     CONST TEMPORARY_ASSET_DIR = self::TEMPORARY_DIR ."asset/";
+    CONST PROJECT_DIR = self::ROOT_DIR . "src/";
 
     CONST CONF_FILE = self::CONF_DIR . "conf.yaml";
 

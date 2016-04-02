@@ -4,6 +4,6 @@
 
     To Compile, run 'composer build-bdd'
  -->
-<database name="sample" defaultIdMethod="native">
+<database name="default" defaultIdMethod="native">
     <!-- table definitions go here -->
 </database>
