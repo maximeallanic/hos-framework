@@ -20,6 +20,9 @@
         "league/glide": "^1.0",
         "php": ">= 7.0.0"
     },
+    "suggest":{
+        "knplabs/gaufrette": "Manage Your File"
+    },    
     "autoload": {
         "psr-4":{
             "Hos\\": "src/"
