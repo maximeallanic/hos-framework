@@ -11,18 +11,6 @@
             "email": "maxime.allanic@daehl.com"
         }
     ],
-    "require": {
-        "monolog/monolog": "^1.18",
-        "twig/twig": "~1.0",
-        "kriswallsmith/assetic": "~1.3",
-        "zendframework/zend-config": "~2.6",
-        "luracast/restler": "dev-features/swagger2.0",
-        "league/glide": "^1.0",
-        "php": ">= 7.0.0"
-    },
-    "suggest":{
-        "knplabs/gaufrette": "Manage Your File"
-    },    
     "autoload": {
         "psr-4":{
             "Hos\\": "src/"
