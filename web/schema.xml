@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Go To http://propelorm.org/documentation/reference/schema.html to fill this File
+
+    To Compile, run 'composer build-bdd'
+ -->
+<database name="sample" defaultIdMethod="native">
+    <!-- table definitions go here -->
+</database>

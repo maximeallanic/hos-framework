@@ -41,20 +41,31 @@ class Route
             },
             '/^\/api\/(.*)/' => function ($matches) {
                 $this->initiateAPI($matches[1]);
+                return "";
             },
             '/\/(.*)\.html$/' => function ($matches) {
+                if (!file_exists(Option::ASSET_DIR.$matches[1] . ".twig"))
+                    return false;
                 return (new Twig())->render($matches[1] . ".twig");
             },
             '/\/(.*\.(css|js))$/' => function ($matches) {
+                if (!file_exists(Option::ASSET_DIR.$matches[1]))
+                    return false;
                 return (new Twig())->renderAssets($matches[1], $matches[2]);
             },
             '/\/(.*\.(gif|jpg|png|png))$/' => function ($matches){
+                if (!file_exists(Option::ASSET_DIR.$matches[1]))
+                    return false;
                 $this->initiateImage($matches[1]);
             },
             '/\/(.*)$/' => function ($matches) {
+                if (!file_exists(Option::ASSET_DIR.$matches[1]))
+                    return false;
                 return file_get_contents(Option::ASSET_DIR.$matches[1]);
             },
             '/(.*)/' => function ($matches) {
+                if (!file_exists(Option::ASSET_DIR."index.twig"))
+                    return false;
                 return (new Twig())->render("index.twig");
             }
         ];
@@ -101,5 +112,6 @@ class Route
             if ($matches = $this->match($reg))
                 if ($result = $function($matches))
                     return $result;
+        throw new ExceptionExt("Not Found", 404);
     }
 }
