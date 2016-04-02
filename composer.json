@@ -16,7 +16,7 @@
         "twig/twig": "~1.0",
         "kriswallsmith/assetic": "~1.3",
         "zendframework/zend-config": "~2.6",
-        "luracast/restler": "dev-master",
+        "luracast/restler": "3.0.0-RC6",
         "league/glide": "^1.0",
         "php": ">= 7.0.0"
     },
