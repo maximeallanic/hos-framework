@@ -8,23 +8,10 @@
 
 namespace Hos;
 
-use Assetic\Asset\FileAsset;
-use Assetic\Asset\GlobAsset;
-use Assetic\AssetManager;
-use Assetic\Extension\Twig\AsseticExtension;
-use Assetic\Factory\AssetFactory;
-use Assetic\Filter\CompassFilter;
-use Assetic\Filter\Yui\CssCompressorFilter;
-use Assetic\FilterManager;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\Stream;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\Filesystem;
-use League\Glide\Responses\PsrResponseFactory;
+use League\Flysystem\Util\MimeType;
 use League\Glide\ServerFactory;
+use League\Glide\Responses\SymfonyResponseFactory;
 use Luracast\Restler\Restler;
-use Twig_Environment;
-use Twig_Loader_Filesystem;
 
 class Route
 {
@@ -37,38 +24,44 @@ class Route
 
         self::$DEFAULT_ROUTE = [
             '/^\/api\/doc\/(.*)/' => function ($matches) {
-                return file_get_contents(__DIR__."/../doc/".($matches[1] ? $matches[1] : "index.html"));
+                return $this->getFile(Option::VENDOR_API_DOC_DIR.($matches[1] ? $matches[1] : "index.html"));
             },
             '/^\/api\/(.*)/' => function ($matches) {
                 $this->initiateAPI($matches[1]);
                 return "";
             },
             '/\/(.*)\.html$/' => function ($matches) {
-                if (!file_exists(Option::ASSET_DIR.$matches[1] . ".twig"))
-                    return false;
-                return (new Twig())->render($matches[1] . ".twig");
+                return $this->renderTwig($matches[1]);
             },
             '/\/(.*\.(css|js))$/' => function ($matches) {
-                if (!file_exists(Option::TEMPORARY_ASSET_DIR.$matches[1]))
-                    return false;
-                return (new Twig())->renderAssets($matches[1], $matches[2]);
+                return $this->getFile(Option::TEMPORARY_ASSET_DIR.$matches[1]);
             },
             '/\/(.*\.(gif|jpg|png|png))$/' => function ($matches){
-                if (!file_exists(Option::ASSET_DIR.$matches[1]))
-                    return false;
-                $this->initiateImage($matches[1]);
+                return $this->renderImage($matches[1]);
             },
             '/\/(.*)$/' => function ($matches) {
-                if (!file_exists(Option::ASSET_DIR.$matches[1]))
-                    return false;
-                return file_get_contents(Option::ASSET_DIR.$matches[1]);
+                return $this->getFile(Option::ASSET_DIR.$matches[1]);
             },
             '/(.*)/' => function ($matches) {
-                if (!file_exists(Option::ASSET_DIR."index.twig"))
-                    return false;
-                return (new Twig())->render("index.twig");
+                return $this->renderTwig("index");
             }
         ];
+    }
+
+    public function getFile($file) {
+        if (!file_exists($file))
+            return false;
+        $mimeType = MimeType::detectByFilename($file);
+        Header::set("Content-Type", $mimeType);
+        return file_get_contents($file);
+    }
+
+    public function renderTwig($file) {
+        if (!file_exists(Option::ASSET_DIR.$file.".twig"))
+            return false;
+        Header::set("Content-Type", "text/html");
+        $twig = new Twig();
+        return $twig->render($file.".twig");
     }
 
     private function match($regex) {
@@ -98,13 +91,16 @@ class Route
         $rest->handle();
     }
 
-    public function initiateImage($file) {
+    public function renderImage($file) {
+        if (!file_exists(Option::ASSET_DIR.$file))
+            return false;
         $service = ServerFactory::create([
             "source" => Option::ASSET_DIR,
             "cache" => Option::TEMPORARY_ASSET_DIR,
             "watermarks" => Option::ASSET_DIR
         ]);
-        $service->outputImage($file, $_GET);
+        $cachedPath = $service->makeImage($file, $_GET);
+        return $this->getFile(Option::TEMPORARY_ASSET_DIR.$cachedPath);
     }
 
     public function dispatch() {

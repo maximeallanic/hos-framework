@@ -12,7 +12,8 @@ use Zend\Config\Config;
 use Zend\Config\Reader;
 use Zend\Config\Writer;
 
-define("ROOT_DIR", realpath(__DIR__ . "/../../../../") . "/");
+define("VENDOR_DIR", __DIR__ . "/../");
+define("ROOT_DIR", realpath(VENDOR_DIR . "../../../") . "/");
 
 class Option
 {
@@ -53,6 +54,10 @@ class Option
     CONST TEMPORARY_DIR = self::APP_DIR . "tmp/";
     CONST TEMPORARY_ASSET_DIR = self::TEMPORARY_DIR ."asset/";
     CONST PROJECT_DIR = self::ROOT_DIR . "src/";
+
+    CONST VENDOR_DIR = VENDOR_DIR;
+    CONST VENDOR_COMPASS_DIR = self::VENDOR_DIR . "compass/";
+    CONST VENDOR_API_DOC_DIR = self::VENDOR_DIR . "doc/";
 
     CONST CONF_FILE = self::CONF_DIR . "conf.yaml";
 

@@ -44,7 +44,7 @@ class Twig
 
         $fm = new FilterManager();
         $compassFilter = new CompassFilter(Option::get()['bin']['compass']);
-        $compassFilter->setImportPath(realpath(__DIR__."/../compass/")."/");
+        $compassFilter->addLoadPath(Option::VENDOR_COMPASS_DIR);
         $compassFilter->setCacheLocation(Option::TEMPORARY_DIR);
         $fm->set('compass', $compassFilter);
         $fm->set('yui_css', new CssCompressorFilter(Option::get()['bin']['yuicompressor']));
@@ -101,17 +101,5 @@ class Twig
             file_put_contents($cache, '');
         }
         return $render;
-    }
-
-    function renderAssets($file, $type) {
-        $file = Option::TEMPORARY_ASSET_DIR.$file;
-        if (!file_exists($file))
-            throw new ExceptionExt("No File", 404);
-        $mimeType = [
-            'css' => 'text/css',
-            'js' => 'application/javascript'
-        ];
-        Header::set('Content-Type', $mimeType[$type]);
-        return file_get_contents($file);
     }
 }
