@@ -1,0 +1,86 @@
+/** Breakpoint **/
+@mixin breakpoint($point, $isMax) {
+  @if $isMax == 1 {
+    @media (max-width: $point) { @content ; }
+  }
+  @else {
+    @media (min-width: $point) { @content ; }
+  }
+}
+
+$layout-breakpoint-xs: 600px;
+$layout-breakpoint-sm: 960px;
+$layout-breakpoint-md: 1280px;
+$layout-breakpoint-lg: 1920px;
+
+$layout-breakpoints: xs $layout-breakpoint-xs, sm $layout-breakpoint-sm, md $layout-breakpoint-md, lg $layout-breakpoint-lg;
+
+
+
+@mixin applyBreakpoints($name) {
+  @each $breakpoint in $layout-breakpoints {
+    $key: nth($breakpoint, 1);
+    $value: nth($breakpoint, 2);
+    .#{$name}-gt-#{$key} {
+      @include breakpoint($value, 0) {
+        @content ;
+      }
+    }
+    .#{$name}-st-#{$key} {
+      @include breakpoint($value, 1) {
+        @content ;
+      }
+    }
+  }
+  .#{$name} {
+    @content ;
+  }
+}
+
+/** Flex **/
+
+@include applyBreakpoints(layout-row) {
+  @include display-flex();
+  @include flex-direction(row);
+  @for $i from 1 through 100 {
+    > .flex-#{$i} {
+      flex: 1 1 #{$i + '%'};
+      max-width: #{$i + '%'};
+      max-height: 100%;
+      box-sizing: border-box;
+    }
+  }
+}
+
+@include applyBreakpoints(layout-column) {
+  @include display-flex();
+  @include flex-direction(column);
+  @for $i from 1 through 100 {
+    > .flex-#{$i} {
+      flex: 1 1 #{$i + '%'};
+      max-height: #{$i + '%'};
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+  }
+}
+
+@include applyBreakpoints(flex) {
+  @include flex(1 1 100%);
+}
+
+@include applyBreakpoints(hide) {
+  display: none !important;
+}
+
+$justifies: flex-start flex-end center space-around space-between;
+$items: center stretch;
+
+@each $justify in $justifies {
+  @each $item in $items {
+    @include applyBreakpoints(layout-align-#{$justify}-#{$item}) {
+      @include align-items($item);
+      @include justify-content($justify);
+    }
+  }
+}

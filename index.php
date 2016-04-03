@@ -39,6 +39,12 @@ try {
 
     /** Route */
     $route = new \Hos\Route();
+
+    $endTime = microtime(true);
+
+    Header::set('Time-Execution', ($endTime - $startTime)."s");
+    Header::set('Server', 'Hos');
+
     echo $route->dispatch();
 
 } catch(ExceptionExt $e) {
@@ -46,7 +52,3 @@ try {
     //echo (new Twig())->render("error.twig", ['error' => $e]);
 }
 
-$endTime = microtime(true);
-
-Header::set('Time-Execution', ($endTime - $startTime)."s");
-Header::set('Server', 'Hos');

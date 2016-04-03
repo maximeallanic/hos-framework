@@ -12,6 +12,6 @@ namespace Hos;
 class Header
 {
     static public function set($key, $value) {
-        //header("$key: $value");
+        header("$key: $value");
     }
 }

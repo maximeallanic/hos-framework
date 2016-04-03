@@ -43,7 +43,10 @@ class Twig
         $am->set('css', new GlobAsset(Option::ASSET_DIR));
 
         $fm = new FilterManager();
-        $fm->set('compass', new CompassFilter(Option::get()['bin']['compass']));
+        $compassFilter = new CompassFilter(Option::get()['bin']['compass']);
+        $compassFilter->setImportPath(realpath(__DIR__."/../compass/")."/");
+        $compassFilter->setCacheLocation(Option::TEMPORARY_DIR);
+        $fm->set('compass', $compassFilter);
         $fm->set('yui_css', new CssCompressorFilter(Option::get()['bin']['yuicompressor']));
         $fm->set('yui_js', new JSCompressorFilter(Option::get()['bin']['yuicompressor']));
 
@@ -70,7 +73,7 @@ class Twig
 
 
         $this->twig->addGlobal('api', new Api());
-        $this->twig->addExtension(new WhitespaceCollapser(['twig', 'html', 'svg', 'xml']));
+        //$this->twig->addExtension(new WhitespaceCollapser(['twig', 'html', 'svg', 'xml']));
         $this->twig->addExtension(new AsseticExtension($this->factory));
         $this->twig->addExtension(new Twig_Extension_Optimizer());
 

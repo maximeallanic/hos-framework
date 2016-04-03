@@ -49,7 +49,7 @@ class Route
                 return (new Twig())->render($matches[1] . ".twig");
             },
             '/\/(.*\.(css|js))$/' => function ($matches) {
-                if (!file_exists(Option::ASSET_DIR.$matches[1]))
+                if (!file_exists(Option::TEMPORARY_ASSET_DIR.$matches[1]))
                     return false;
                 return (new Twig())->renderAssets($matches[1], $matches[2]);
             },

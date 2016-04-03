@@ -1,0 +1,48 @@
+.button {
+  text-decoration: none;
+  cursor: pointer;
+  @include user-select(none);
+  outline: none;
+  background-color: white;
+  border: none;
+}
+
+.input-group {
+  min-width: 60px;
+  @extend .layout-column;
+
+  > input[type="text"], > input[type="email"], > input[type="password"], > textarea {
+    background-color: transparent;
+    border: none;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.dropdown {
+  position: relative;
+
+  > a {
+
+  }
+
+  &.content {
+    z-index: 1601;
+    top: 0;
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    background-color: white;
+
+    &.open {
+      display: flex;
+    }
+  }
+}
+
+form {
+  padding: 5px;
+}
+
