@@ -48,7 +48,6 @@ try {
     echo $route->dispatch();
 
 } catch(ExceptionExt $e) {
-    echo "error ".$e->getMessage();
-    //echo (new Twig())->render("error.twig", ['error' => $e]);
+    echo $e->render();
 }
 

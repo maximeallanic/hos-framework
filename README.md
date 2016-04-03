@@ -33,7 +33,15 @@ and
 
 To Be compatible with AngularJS use Bracket variable like this:
 
-    \{{ sample }}
+```javascript
+
+    angular.module('app', [])
+      .config(['$interpolateProvider', function ($interpolateProvider) {
+        $interpolateProvider.startSymbol('[[');
+        $interpolateProvider.endSymbol(']]');
+      }]);
+  
+```
  
 ### Image API
 

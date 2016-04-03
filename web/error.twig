@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Erreur</title>
+    <style>
+        body {
+            background-color: #eeeeee;
+            text-align: center;
+            font-family: Arial, Helvetica, "Nimbus Sans L", sans-serif;
+            color: #666;
+            padding: 0px 10%;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .include {
+
+        }
+
+        pre {
+            text-align: left;
+
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ message }}</h1>
+    {% if code %}
+    <h2>{{ code }}</h2>
+    {% endif %}
+    {% if block_error %}
+    <span class="include">
+        {% include block_error %}
+    </span>
+    {% endif %}
+</body>
+</html>

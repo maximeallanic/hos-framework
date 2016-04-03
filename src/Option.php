@@ -38,9 +38,9 @@ class Option
         ],
         'twig' => [
             'lexer' => [
-                'tagcomment' => ["<%#", "%>"],
-                'tagblock' => ["<%", "%>"],
-                'tagvariable' => ["<%=", "%>"],
+                'tagcomment' => ["{#", "#}"],
+                'tagblock' => ["{%", "%}"],
+                'tagvariable' => ["{{", "}}"],
                 'interpolation' => ["#{", "}"]
             ]
         ]
@@ -58,8 +58,9 @@ class Option
     CONST VENDOR_DIR = VENDOR_DIR;
     CONST VENDOR_COMPASS_DIR = self::VENDOR_DIR . "compass/";
     CONST VENDOR_API_DOC_DIR = self::VENDOR_DIR . "doc/";
+    CONST VENDOR_WEB_DIR = self::VENDOR_DIR . "web/";
 
-    CONST CONF_FILE = self::CONF_DIR . "conf.yaml";
+    CONST CONF_FILE = self::CONF_DIR . "parameter.yaml";
 
     static private $reader = null;
     static private $writer = null;
@@ -70,11 +71,19 @@ class Option
         if (!self::$reader) {
             self::$reader = new Reader\Yaml();
             if (!file_exists(self::CONF_FILE))
-                throw new ExceptionExt("No Conf File");
+                throw new ExceptionExt("No Conf File", "error/no_conf.twig", ['dir' => Option::CONF_FILE, 'parameter' => self::getDefaultYaml()]);
             self::$options = self::$reader->fromFile(self::CONF_FILE);
             self::$options = array_merge(self::DEFAULT_OPTIONS, self::$options);
         }
         return self::$options;
+    }
+
+    static function getDefaultYaml() {
+        if (!self::$writer) {
+            self::$writer = new Writer\Yaml();
+        }
+        $config = new Config(self::DEFAULT_OPTIONS, true);
+        return self::$writer->toString($config);
     }
 
     static function isDev() {
