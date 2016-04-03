@@ -18,7 +18,7 @@
     },
     "scripts": {
         "generate-js-api-angular": ["Hos\\Command\\GenerateJSApi::execute"],
-        "post-root-package-install": [
+        "post-package-install": [
             "mkdir app",
             "mkdir app/log",
             "mkdir app/conf",
