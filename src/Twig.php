@@ -23,6 +23,7 @@ use Assetic\Filter\CompassFilter;
 use Assetic\Filter\Yui\CssCompressorFilter;
 use Assetic\Filter\Yui\JsCompressorFilter;
 use Assetic\FilterManager;
+use Hos\Twig\Extensions;
 use MatTheCat\Twig\Extension\WhitespaceCollapser;
 use Twig_Environment;
 use Twig_Extension_Optimizer;
@@ -76,6 +77,7 @@ class Twig
         //$this->twig->addExtension(new WhitespaceCollapser(['twig', 'html', 'svg', 'xml']));
         $this->twig->addExtension(new AsseticExtension($this->factory));
         $this->twig->addExtension(new Twig_Extension_Optimizer());
+        $this->twig->addExtension(new Extensions());
 
         $optionsLexer = Option::get()['twig']['lexer'];
         $lexer = new Twig_Lexer($this->twig, array(
