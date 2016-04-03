@@ -65,7 +65,7 @@ class Option
         if (!self::$reader) {
             self::$reader = new Reader\Yaml();
             if (!file_exists(self::CONF_FILE))
-                throw new \Exception("No Conf File");
+                throw new ExceptionExt("No Conf File");
             self::$options = self::$reader->fromFile(self::CONF_FILE);
             self::$options = array_merge(self::DEFAULT_OPTIONS, self::$options);
         }

@@ -17,10 +17,6 @@ use Hos\Option;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 try {
     if (!extension_loaded('yaml'))
         throw new ExceptionExt("No Yaml Library");
