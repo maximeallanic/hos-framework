@@ -17,7 +17,20 @@
         }
     },
     "scripts": {
-        "generate-js-api-angular": ["Hos\\Command\\GenerateJSApi::execute"]
+        "generate-js-api-angular": ["Hos\\Command\\GenerateJSApi::execute"],
+        "post-root-package-install": [
+            "mkdir app",
+            "mkdir app/log",
+            "mkdir app/conf",
+            "mkdir asset",
+            "cp vendor/daehl/hos-framework/web/schema.xml app/conf/schema.xml"
+        ],
+        "build-sql": [
+            "Hos\\Command\\BuildSQL::execute"
+        ],
+        "push": [
+            "Hos\\Command\\Push::execute"
+        ]
     }
 
 }
