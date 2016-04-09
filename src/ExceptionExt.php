@@ -24,6 +24,7 @@ class ExceptionExt extends Exception
         $this->options = $options;
         $this->block = $block;
         parent::__construct($message, $code, $previous);
+        Log::error($message);
 
     }
 

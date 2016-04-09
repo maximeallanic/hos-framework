@@ -56,6 +56,9 @@ class Twig
         $this->factory->setFilterManager($fm);
         $this->factory->setDebug(Option::isDev());
 
+        if (!file_exists(Option::TEMPORARY_ASSET_DIR))
+            mkdir(Option::TEMPORARY_ASSET_DIR, Option::WRITE_MODE, true);
+
         $this->twigLoader = new Twig_Loader_Filesystem(Option::ASSET_DIR);
 
         /** Set For Environment */

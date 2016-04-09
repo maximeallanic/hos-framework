@@ -62,6 +62,8 @@ class Option
 
     CONST CONF_FILE = self::CONF_DIR . "parameter.yaml";
 
+    CONST WRITE_MODE = 0777;
+
     static private $reader = null;
     static private $writer = null;
 

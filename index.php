@@ -29,11 +29,6 @@ try {
         error_reporting(E_ALL);
     }
 
-    /** Log */
-    $defaultLogger = new Logger('hos');
-    $logFile = Option::LOG_DIR.Option::get()['environment'].".log";
-    $defaultLogger->pushHandler(new StreamHandler($logFile, Logger::WARNING));
-
     /** BDD */
     new BDD();
 
@@ -42,8 +37,8 @@ try {
 
     $endTime = microtime(true);
 
-    Header::set('Time-Execution', ($endTime - $startTime)."s");
-    Header::set('Server', 'Hos');
+    Header::add('Time-Execution', ($endTime - $startTime)."s");
+    Header::add('Server', 'Hos');
 
     echo $route->dispatch();
 

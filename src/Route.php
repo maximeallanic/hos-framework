@@ -52,14 +52,14 @@ class Route
         if (!file_exists($file))
             return false;
         $mimeType = MimeType::detectByFilename($file);
-        Header::set("Content-Type", $mimeType);
+        Header::add("Content-Type", $mimeType);
         return file_get_contents($file);
     }
 
     public function renderTwig($file) {
         if (!file_exists(Option::ASSET_DIR.$file.".twig"))
             return false;
-        Header::set("Content-Type", "text/html");
+        Header::add("Content-Type", "text/html");
         $twig = new Twig();
         return $twig->render($file.".twig");
     }
