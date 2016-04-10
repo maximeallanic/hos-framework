@@ -83,6 +83,8 @@ class Route
         /** Insert API Doc */
         $rest->addAPIClass('Luracast\\Restler\\Resources');
 
+        $rest->addAPIClass('Hos\\Translator');
+
         /** Insert All PHP Class */
         foreach (Option::get()['api'] as $class)
             $rest->addAPIClass($class);

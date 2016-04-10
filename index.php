@@ -29,9 +29,6 @@ try {
         error_reporting(E_ALL);
     }
 
-    /** BDD */
-    new BDD();
-
     /** Route */
     $route = new \Hos\Route();
 

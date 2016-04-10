@@ -21,6 +21,7 @@ class Model
      * @var \ReflectionClass
      */
     private $reflection = null;
+    private $disableDatabase = false;
 
     function __construct($databaseInquire = null) {
         $this->doc = Instance::getDocInstance();
@@ -39,6 +40,10 @@ class Model
         if ($databaseInquire)
             $this->isNew = false;
         $this->toModify = [];
+    }
+
+    private function disableDatabase() {
+        $this->disableDatabase = true;
     }
 
     private function convertVariable($value, $type) {
