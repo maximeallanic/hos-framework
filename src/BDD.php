@@ -41,8 +41,8 @@ class BDD
                     1 => 'vendor',
                 ),
         ));
-        $manager->setName('default');
-        $serviceContainer->setConnectionManager('default', $manager);
-        $serviceContainer->setDefaultDatasource('default');
+        $manager->setName($options['db']);
+        $serviceContainer->setConnectionManager($options['db'], $manager);
+        $serviceContainer->setDefaultDatasource($options['db']);
     }
 }

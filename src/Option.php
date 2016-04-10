@@ -46,6 +46,7 @@ class Option
         ]
     ];
 
+    CONST USER = "web";
     CONST ROOT_DIR = ROOT_DIR;
     CONST APP_DIR = self::ROOT_DIR . "app/";
     CONST LOG_DIR = self::APP_DIR . "log/";

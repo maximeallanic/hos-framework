@@ -27,12 +27,18 @@ class Log
     static function alert($message, $params = []) {
         if (!self::$logger)
             self::init();
-        self::$logger->addAlert($message, $params);
+        self::$logger->alert(sprintf($message, $params));
     }
 
     static function error($message, $params = []) {
         if (!self::$logger)
             self::init();
-        self::$logger->addError($message, $params);
+        self::$logger->error(sprintf($message, $params));
+    }
+
+    static function info($message, $params = []) {
+        if (!self::$logger)
+            self::init();
+        self::$logger->info(sprintf($message, $params));
     }
 }

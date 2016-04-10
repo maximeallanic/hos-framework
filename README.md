@@ -27,6 +27,8 @@ and
 
     composer build-bdd
     
+    vendor/bin/propel model:build --schema-dir 'app/conf/' --output-dir 'src/' --config-dir 'app/tmp/'
+    
 ```
 
 ### Twig

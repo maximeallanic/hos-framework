@@ -49,9 +49,8 @@ class BuildSQL
     static function execute() {
         self::generateConf();
         $commands = array(
-            "vendor/bin/propel sql:build --schema-dir '".Option::CONF_DIR."' --output-dir '".Option::TEMPORARY_DIR."' --overwrite --config-dir '".Option::TEMPORARY_DIR."'",
-            "vendor/bin/propel model:build --schema-dir '".Option::CONF_DIR."' --output-dir '".Option::get()['database']['generated_classes']."' --config-dir '".Option::TEMPORARY_DIR."'",
-            "vendor/bin/propel sql:insert --sql-dir '".Option::TEMPORARY_DIR."' --config-dir '".Option::TEMPORARY_DIR."'",
+            Option::ROOT_DIR."/vendor/bin/propel sql:build --schema-dir '".Option::CONF_DIR."' --output-dir '".Option::TEMPORARY_DIR."' --overwrite --config-dir '".Option::TEMPORARY_DIR."'",
+            Option::ROOT_DIR."/vendor/bin/propel sql:insert --sql-dir '".Option::TEMPORARY_DIR."' --config-dir '".Option::TEMPORARY_DIR."'",
         );
         foreach ($commands as $command) {
             echo $command."\n";
