@@ -27,8 +27,7 @@ class Route
                 return $this->getFile(Option::VENDOR_API_DOC_DIR.($matches[1] ? $matches[1] : "index.html"));
             },
             '/^\/api\/(.*)/' => function ($matches) {
-                $this->initiateAPI($matches[1]);
-                return "";
+                return $this->initiateAPI($matches[1]);
             },
             '/\/(.*)\.html$/' => function ($matches) {
                 return $this->renderTwig($matches[1]);
@@ -71,18 +70,17 @@ class Route
     }
 
     public function initiateAPI($request) {
-        $_SERVER['REQUEST_URI'] = $request;
+        //$_SERVER['REQUEST_URI'] = $request;
         /** Initiate Restler Object */
-        $rest = new Restler(!Option::isDev());
+        //$rest = new Restler(!Option::isDev());
+        $rest = new Api();
 
         /** Configuration */
         $rest->setAPIVersion(1);
-        $rest->setBaseUrls(Option::getBaseUrl()."/api/");
-        $rest->setSupportedFormats('XmlFormat', 'JsonFormat');
+        $rest->setBaseUrl(Option::getBaseUrl()."/api/");
+        //$rest->setSupportedFormats('XmlFormat', 'JsonFormat');
 
-        /** Insert API Doc */
-        $rest->addAPIClass('Luracast\\Restler\\Resources');
-
+        //$rest->addAPIClass("Resources");
         $rest->addAPIClass('Hos\\Translator');
 
         /** Insert All PHP Class */
@@ -90,7 +88,7 @@ class Route
             $rest->addAPIClass($class);
 
         /** Start */
-        $rest->handle();
+        return $rest->handle($request);
     }
 
     public function renderImage($file) {
@@ -102,7 +100,9 @@ class Route
             "watermarks" => Option::ASSET_DIR
         ]);
         $cachedPath = $service->makeImage($file, $_GET);
-        return $this->getFile(Option::TEMPORARY_ASSET_DIR.$cachedPath);
+        $mimeType = MimeType::detectByFilename($file);
+        Header::add("Content-Type", $mimeType);
+        return file_get_contents(Option::TEMPORARY_ASSET_DIR.$cachedPath);
     }
 
     public function dispatch() {

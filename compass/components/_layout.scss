@@ -1,34 +1,43 @@
+$layout-breakpoint-xs: 600 !default;
+$layout-breakpoint-sm: 960 !default;
+$layout-breakpoint-md: 1280 !default;
+$layout-breakpoint-lg: 1920 !default;
+
+$lt: st !default;
+$gt: gt !default;
+
+$layout-breakpoints: (xs: $layout-breakpoint-xs, sm: $layout-breakpoint-sm, md: $layout-breakpoint-md, lg: $layout-breakpoint-lg) !default;
+
+@function getAllLayoutColumns() {
+  $columns: null;
+  @for $i from 1 through 100 {
+    $columns: append($columns, $i);
+  }
+  @return $columns;
+}
+
+$columns: getAllLayoutColumns() !default;
+
 /** Breakpoint **/
 @mixin breakpoint($point, $isMax) {
   @if $isMax == 1 {
-    @media (max-width: $point) { @content ; }
+    @media (max-width: '#{$point - 1}px') { @content ; }
   }
   @else {
-    @media (min-width: $point) { @content ; }
+    @media (min-width: '#{$point}px') { @content ; }
   }
 }
 
-$layout-breakpoint-xs: 600px;
-$layout-breakpoint-sm: 960px;
-$layout-breakpoint-md: 1280px;
-$layout-breakpoint-lg: 1920px;
-
-$layout-breakpoints: xs $layout-breakpoint-xs, sm $layout-breakpoint-sm, md $layout-breakpoint-md, lg $layout-breakpoint-lg;
-
-
-
 @mixin applyBreakpoints($name) {
-  @each $breakpoint in $layout-breakpoints {
-    $key: nth($breakpoint, 1);
-    $value: nth($breakpoint, 2);
-    .#{$name}-gt-#{$key} {
+  @each $key, $value in $layout-breakpoints {
+    .#{$name}-#{$gt}-#{$key} {
       @include breakpoint($value, 0) {
-        @content ;
+        @content;
       }
     }
-    .#{$name}-st-#{$key} {
+    .#{$name}-#{$lt}-#{$key} {
       @include breakpoint($value, 1) {
-        @content ;
+        @content;
       }
     }
   }
@@ -37,32 +46,93 @@ $layout-breakpoints: xs $layout-breakpoint-xs, sm $layout-breakpoint-sm, md $lay
   }
 }
 
-/** Flex **/
+@mixin flexContent($layout, $i) {
+  $percent: unquote('#{$i}%');
+  @if ($layout == layout-row) {
+    @include flex(1 1 $percent);
+    @include box-sizing(border-box);
+    max-width: $percent;
+    max-height: 100%;
+  }
+  @else if ($layout == layout-column) {
+    @include flex(1 1 $percent);
+    @include box-sizing(border-box);
+    max-height: $percent;
+    max-width: 100%;
+  }
+}
 
-@include applyBreakpoints(layout-row) {
-  @include display-flex();
-  @include flex-direction(row);
-  @for $i from 1 through 100 {
-    > .flex-#{$i} {
-      flex: 1 1 #{$i + '%'};
-      max-width: #{$i + '%'};
-      max-height: 100%;
-      box-sizing: border-box;
+@mixin flexSubLayout($i, $layout, $layoutValue, $flexKey, $flexValue, $isMax) {
+  > .flex-#{$i} {
+    @include flexContent($layout, $i);
+  }
+
+  @if(($layoutValue == 0)
+      or ($isMax == 1 and $flexValue >= $layoutValue)
+      or ($isMax == 0 and $flexValue < $layoutValue)) {
+    @include breakpoint($flexValue, 1) {
+      > .flex-#{$i}-#{$lt}-#{$flexKey} {
+        @include flexContent($layout, $i);
+      }
+    }
+  }
+
+  @if(($layoutValue == 0)
+      or ($isMax == 1 and $flexValue < $layoutValue)
+      or ($isMax == 0 and $flexValue >= $layoutValue)) {
+    @include breakpoint($flexValue, 0) {
+      > .flex-#{$i}-#{$gt}-#{$flexKey} {
+        @include flexContent($layout, $i);
+      }
+    }
+  }  
+}
+
+@mixin flexLayout($layout) {
+  @each $layoutKey, $layoutValue in $layout-breakpoints {
+    .#{$layout}-#{$gt}-#{$layoutKey} {
+      @include breakpoint($layoutValue, 0) {
+        @content;
+      }
+      @each $flexKey, $flexValue in $layout-breakpoints {
+        @each $i in $columns {
+          @include flexSubLayout($i, $layout, $layoutValue, $flexKey, $flexValue, 0);
+        }
+      }
+
+    }
+
+    .#{$layout}-#{$lt}-#{$layoutKey} {
+      @include breakpoint($layoutValue, 1) {
+        @content;
+      }
+      @each $flexKey, $flexValue in $layout-breakpoints {
+        @each $i in $columns {
+          @include flexSubLayout($i, $layout, $layoutValue, $flexKey, $flexValue, 1);
+        }
+      }
+    }
+  }
+  .#{$layout} {
+    @content;
+    @each $flexKey, $flexValue in $layout-breakpoints {
+      @each $i in $columns {
+        @include flexSubLayout($i, $layout, 0, $flexKey, $flexValue, 0);
+      }
     }
   }
 }
 
-@include applyBreakpoints(layout-column) {
+/** Flex **/
+
+@include flexLayout(layout-row){
+  @include display-flex();
+  @include flex-direction(row);
+}
+
+@include flexLayout(layout-column) {
   @include display-flex();
   @include flex-direction(column);
-  @for $i from 1 through 100 {
-    > .flex-#{$i} {
-      flex: 1 1 #{$i + '%'};
-      max-height: #{$i + '%'};
-      max-width: 100%;
-      box-sizing: border-box;
-    }
-  }
 }
 
 @include applyBreakpoints(flex) {
@@ -74,7 +144,7 @@ $layout-breakpoints: xs $layout-breakpoint-xs, sm $layout-breakpoint-sm, md $lay
 }
 
 $justifies: flex-start flex-end center space-around space-between;
-$items: center stretch;
+$items: center stretch flex-start flex-end;
 
 @each $justify in $justifies {
   @each $item in $items {
@@ -83,4 +153,8 @@ $items: center stretch;
       @include justify-content($justify);
     }
   }
+}
+
+@include applyBreakpoints(layout-fill) {
+  @include align-self(stretch);
 }

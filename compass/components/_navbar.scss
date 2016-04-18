@@ -1,0 +1,41 @@
+$navbar-height: 45px !default;
+.navbar {
+  min-height: $navbar-height;
+  background-color: white;
+  @extend .layout-row;
+  @extend .layout-align-space-between-stretch;
+
+  > .logo {
+    margin: 0;
+    padding: 0 15px;
+    height: $navbar-height;
+
+    > img, > svg {
+      height: 100%;
+      width: auto;
+    }
+
+    &:active {
+      background-color: white;
+    }
+  }
+
+  > .menu {
+    margin: 0 15px;
+    height: $navbar-height;
+
+    > .item {
+      @extend .layout-column;
+      @extend .layout-align-center-center;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    > a {
+      cursor: pointer;
+      height: $navbar-height;
+      @include box-sizing(border-box);
+      margin: 0;
+    }
+  }
+}

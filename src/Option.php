@@ -60,6 +60,7 @@ class Option
     CONST VENDOR_COMPASS_DIR = self::VENDOR_DIR . "compass/";
     CONST VENDOR_API_DOC_DIR = self::VENDOR_DIR . "doc/";
     CONST VENDOR_WEB_DIR = self::VENDOR_DIR . "web/";
+    CONST VENDOR_JAVASCRIPT_DIR = self::VENDOR_DIR . "javascript/";
 
     CONST CONF_FILE = self::CONF_DIR . "parameter.yaml";
 

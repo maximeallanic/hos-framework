@@ -1,6 +1,11 @@
 <?php
 
 namespace Hos\Model;
+use Cake\Datasource\ConnectionManager;
+use Cake\ORM\TableRegistry;
+use Hos\ExceptionExt;
+use Hos\Option;
+
 /**
  * Created by PhpStorm.
  * User: mallanic
@@ -9,143 +14,72 @@ namespace Hos\Model;
  */
 class Collection
 {
-    /**
-     * @var MySQL
-     */
-    protected $database = null;
-
+    CONST DATABASE_TYPE = [
+        "mysql" => 'Cake\Database\Driver\Mysql',
+        "pdo" => 'Cake\Database\Driver\PDODriverTrait',
+        "pgsql" => 'Cake\Database\Driver\Postgres',
+        "sqlite" => 'Cake\Database\Driver\Sqlite',
+        "sql" => 'Cake\Database\Driver\Sqlserver'
+    ];
     /**
      * @var \ReflectionClass
      */
-    protected $reflectionEntity = null;
+    private $model = null;
+    private $class = null;
+    public $collections = null;
+    static $connection = null;
 
-    /**
-     * @var string
-     */
-    protected $tableName = null;
+    public function __construct()
+    {
 
+        $this->class = new \Zend_Reflection_Class(get_class($this));
+        if (!$model = $this->class->getDocblock()->getTag('model'))
+            throw new ExceptionExt("collection.require_model_doc");
+        $this->model = new \Zend_Reflection_Class($model->getDescription());
 
-    function __construct() {
-        $this->database = Instance::getDatabaseInstance();
-        $reflection = new \ReflectionClass(get_class($this));
-        $doc = Instance::getDocInstance()->getDocHeader($reflection);
-        if (!isset($doc['entity']))
-            throw new Error("no_entity_select");
-        $this->reflectionEntity = new \ReflectionClass($doc['entity'][0]);
-        $this->tableName = $this->reflectionEntity->getShortName();
-        if (!$this->database->hasTable($this->tableName))
-            $this->createTable($this->reflectionEntity->getName(),
-                $this->tableName);
-    }
-
-    protected function createTable($entityName, $tableName) {
-        $doc = Instance::getDocInstance();
-        /*
-        $entries = $doc->getEntriesFromEntity($entityName);
-        $properties = [];
-        foreach ($entries as $name=>$entry) {
-            $properties[$name] = array(
-                'sql' => $this->database->getMySQLTypeFromPHP($entry['var'])
-            );
+        if (!self::$connection) {
+            $params = Option::get()['database'];
+            self::$connection = ConnectionManager::config('default', [
+                'className' => 'Cake\Database\Connection',
+                'driver' => self::DATABASE_TYPE[$params['type']],
+                'persistent' => false,
+                'host' => $params['host'],
+                'username' => $params['user'],
+                'password' => $params['password'],
+                'database' => $params['db'],
+                'encoding' => 'utf8',
+                'timezone' => 'UTC',
+                'cacheMetadata' => true,
+            ]);
         }
-        $this->database->createTable($tableName, $properties);*/
+        $this->collections = TableRegistry::get($this->model->getShortName());
     }
 
-    protected function getAll() {
-        $entities = $this->database->select($this->tableName)
-            ->getAll();
-        return $this->arraySQLToEntity($entities);
+    private function dataToModel($data) {
+        $model = $this->model->newInstance();
+        $model->from($data);
+        return $model;
     }
 
-    protected function sqlToEntity($result) {
-        return $this->reflectionEntity->newInstance($result);
+    private function datasToModel($datas) {
+        foreach ($datas as &$data)
+            $data = $this->dataToModel($data);
+        return $datas;
     }
 
-    protected function arraySQLToEntity($results) {
-        $entities = [];
-        foreach ($results as $result)
-            $entities[] = $this->sqlToEntity($result);
-        return $entities;
+
+    public function findAll($orderBy = [], $filterBy = [], $limit = -1, $startAt = 0) {
+        $query = $this->collections->find();
+        if ($limit >= 0)
+            $query->limit($limit);
+        if (count($orderBy) > 0)
+            $query->order($orderBy);
+        if (count($filterBy) > 0)
+            $query->offset($startAt);
+        return $this->datasToModel($query->getIterator());
     }
 
-    protected function create() {
-        $keys = array_keys(get_object_vars($this->reflectionEntity->getName()));
-        $values = func_get_args()[0];
-        $properties = array_combine($keys, $values);
-        $entity = $this->reflectionEntity->newInstance();
-        foreach ($properties as $key=>$value) {
-            $function = "set".ucfirst($key);
-            $entity->$function($value);
-        }
-        if (method_exists($entity, "onCreate"))
-            $entity->onCreate();
-        $properties = $entity->toSQL();
-        $this->database->insert($this->tableName, $properties)
-            ->execute();
-    }
+    public function find() {
 
-    protected function update() {
-        $keys = [];
-        foreach ($this->reflectionEntity->getProperties() as $property)
-            $keys[] = $property->getName();
-        $values = func_get_args()[0];
-        $properties = array_combine($keys, $values);
-        $entity = $this->findOneById($properties['id']);
-        foreach ($properties as $key=>$value) {
-            $function = "set".ucfirst($key);
-            $entity->$function($value);
-        }
-        if (method_exists($entity, "onUpdate"))
-            $entity->onUpdate();
-        $properties = $entity->toSQL();
-        $this->database->update($this->tableName, $properties)
-            ->execute();
-
-    }
-
-    protected function delete($id) {
-        $entity = $this->findOneById($id);
-        if (method_exists($entity, "onDelete"))
-            $entity->onDelete();
-        return $this->database->delete($this->tableName)
-            ->where("`id` = $id")
-            ->execute();
-    }
-
-    protected function find($search) {
-        $columns = $this->database->getColumns($this->tableName);
-        array_walk($columns, function (&$column, $key, $search) {
-            $column = "`$column` LIKE '%$search%'";
-        }, $search);
-        $columns = implode(' OR ', $columns);
-        $results = $this->database->select($this->tableName)
-            ->where("$columns")
-            ->getAll();
-        if (!$results)
-            throw new Error("not_found");
-        return $this->arraySQLToEntity($results);
-    }
-
-    protected function findOne($search) {
-        $columns = $this->database->getColumns($this->tableName);
-        array_walk($columns, function (&$column, $key, $search) {
-            $column = "`$column` LIKE '%$search%'";
-        }, $search);
-        $columns = implode(' OR ', $columns);
-        $result = $this->database->select($this->tableName)
-            ->where("$columns")
-            ->getOne();
-        if (!$result)
-            throw new Error("not_found");
-        return $this->sqlToEntity($result);
-    }
-
-    protected function findOneById($id) {
-        $result = $this->database->select($this->tableName)
-            ->where("`id` = '$id'")
-            ->getOne();
-        if (!$result)
-            throw new Error("not_found", array('id' => $id));
-        return $this->sqlToEntity($result);
     }
 }

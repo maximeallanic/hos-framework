@@ -1,6 +1,9 @@
 <?php
 
 namespace Hos\Model;
+use Cake\ORM\TableRegistry;
+use Hos\ExceptionExt;
+
 /**
  * Created by PhpStorm.
  * User: mallanic
@@ -9,152 +12,149 @@ namespace Hos\Model;
  */
 class Model
 {
-    CONST SET_REGEX = "/^(?:set|add)([A-Za-z])+/";
-    CONST GET_REGEX = "/^get([A-Za-z])+/";
-    private $toModify = [];
-    private $isNew = true;
-    private $tableName = null;
-    private $translator = null;
-    private $doc = null;
+    CONST SET_REGEX = "/^(?:set|add)(?<name>[A-Za-z])+/";
+    CONST GET_REGEX = "/^get(?<name>[A-Za-z])+/";
+    CONST PROPERTY_REGEX = "/(?<type>[A-Za-z]+)(?:(?:\s+default=(?<default>(?:(?!\s).)+)))?/";
+
+    /** @var null|\Zend_Reflection_Class */
+    private $class = null;
+
+    private $disableDatabase = false;
+    private $properties = [];
+    private $isCreated = false;
 
     /**
-     * @var \ReflectionClass
+     * @var int
      */
-    private $reflection = null;
-    private $disableDatabase = false;
+    public $id;
 
-    function __construct($databaseInquire = null) {
-        $this->doc = Instance::getDocInstance();
-        $this->translator = Instance::getTranslatorInstance();
-        $this->reflection = new \ReflectionClass(get_class($this));
-        foreach ($this->reflection->getMethods() as $method)
-            if (preg_match(self::GET_REGEX, $method->getName()) ||
-                preg_match(self::SET_REGEX, $method->getName()))
-                $method->setAccessible(false);
-        $properties = $this->reflection->getProperties();
-        foreach ($properties as $property) {
-            $key = $property->getName();
-            $this->$key = $this->initializeValue($key,
-                $databaseInquire == null ? null : $databaseInquire[$key]);
+    function __construct() {
+        $this->class = new \Zend_Reflection_Class(get_class($this));
+        /** @var \Zend_Reflection_Property $property */
+        foreach ($this->class->getProperties() as $property) {
+            if (!$property->isPrivate()
+                && $doc = $property->getDocComment())
+                $this->properties[$property->getName()] = $this->parseProperty($doc);
+            $property->setAccessible(false);
         }
-        if ($databaseInquire)
-            $this->isNew = false;
-        $this->toModify = [];
     }
 
-    private function disableDatabase() {
+    /**
+     * @param \Zend_Reflection_Docblock $doc
+     * @return array
+     */
+    private function parseProperty($doc) {
+        $var = $doc->getTag('var');
+        if (!$var)
+            return false;
+        preg_match(self::PROPERTY_REGEX, $var->getDescription(), $matches);
+        return array_filter($matches, function ($key) {
+            return !is_numeric($key);
+        }, ARRAY_FILTER_USE_KEY);
+    }
+
+    public function disableDatabase() {
         $this->disableDatabase = true;
     }
 
-    private function convertVariable($value, $type) {
-
-        if (strpos($type, '[]')) {
-            if (!$value)
-                return array();
-            if (gettype($value) != "array")
-                $value = unserialize($value);
-            $type = str_replace('[]', '', $type);
-            for ($i = 0; $i < count($value); $i++)
-                $value[$i] = $this->convertVariable($value[$i], $type);
-            return $value;
+    private function update() {
+        $this->newEvent("preCreate");
+        $collections = TableRegistry::get($this->class->getShortName());
+        $model = $collections->get($this->getPrimaryKey());
+        $this->newEvent("postCreate");
+        if ($collections->save($model)) {
+            $this->isCreated = true;
+            return true;
         }
-        if (!$value)
-            return null;
-        switch ($type) {
-            case "string":
-                return strval($value);
-            case "integer":
-                return intval($value);
-        }
-        if ($d = $this->doc->getDatabaseFromEntity($type)) {
-            $object = $d->newInstance();
-            return $d->getMethod("findOneById")->invokeArgs($object, array($value));
-        }
-        return $value;
+        return false;
     }
 
+    private function create() {
+        if (!$this->disableDatabase)
+            return false;
+        $this->newEvent("preCreate");
+        $collections = TableRegistry::get($this->class->getName());
+        $model = $collections->newEntity($this->toArray());
+        $this->newEvent("postCreate");
+        if ($collections->save($model)) {
+            $this->isCreated = true;
+            return true;
+        }
+        return false;
+    }
 
+    public function delete() {
+        if (!$this->disableDatabase)
+            return false;
+        $this->newEvent("preDelete");
+        $collections = TableRegistry::get($this->class->getName());
+        $model = $collections->get($this->getPrimaryKey());
+        $this->newEvent("postDelete");
+        if ($collections->delete($model)) {
+            $this->isCreated = true;
+            return true;
+        }
+        return false;
+    }
+
+    public function save()
+    {
+        if (!$this->disableDatabase)
+            return false;
+        return $this->isCreated ? $this->update() : $this->create();
+    }
 
     public function __call($name, $arguments) {
-        if (!$method = $this->reflection->getMethod($name))
-            throw new Error('function_not_exist');
-        if (preg_match(self::SET_REGEX, $name) ||
-            preg_match(self::GET_REGEX, $name, $function)) {
-            /**$doc = $this->doc->getDocHeader($method);
-            $arguments = array_combine($arguments, $method->getParameters());
-            array_walk($arguments, function ($value, $key, $doc) {
-            foreach ($doc['param'] as $param)
-            if ($param[0] == $key->getName())
-            return $this->convertVariable($key, $param[1][0]);
-            }, $doc);*/
-            $return = $method->invoke($this, $arguments);
-            return $return;//$this->convertVariable($return, $doc['return'][0]);
-        }
-    }
-
-    function initializeValue($key, $value) {
-        $property = $this->reflection->getProperty($key);
-        $doc = Instance::getDocInstance()->getDocHeader($property);
-        $value = $this->convertVariable($value, $doc['protected'][0]);
-        return $value;
-    }
-
-    function toSQL() {
-        $properties = [];
-        $rProperties = $this->reflection->getProperties();
-        foreach ($rProperties as $rProperty) {
-            $key = $rProperty->getName();
-            $doc = Instance::getDocInstance()->getDocHeader($rProperty);
-            $type = $this->getVarType($doc);
-            if ($type['isArray'])
-                $properties[$key] = $this->arrayToSQL($type, $this->$key);
-            else
-                $properties[$key] = $this->$key;
-        }
-        return $properties;
-    }
-
-    function arrayToSQL($type, $value) {
-        if (!$value)
-            return array();
-        $array = unserialize($value);
-        if (!class_exists($type['type'], true))
-            return $array;
-        for ($i = 0; $i < count($array); $i++)
-            $array[$i] = $array[$i]->getId();
-        return $array;
-    }
-
-    private function getVarType($doc) {
-        /*if (isset($doc['protected']))
-            $doc['protected'] = str_replace('\\', '\\\\', $doc['protected']);*/
-        return array(
-            'isArray' => isset($doc['protected'][0]) && strpos($doc['protected'][0], '[]') ? true : false,
-            'type' => isset($doc['protected'][0]) ? str_replace('[]', '', $doc['protected'][0]) : null
-        );
-    }
-
-    function hasAcces($key) {
-        if (!$this->reflection->hasProperty($key))
+        if (!$method = $this->class->getMethod($name))
             return false;
-        $reflection = $this->reflection->getProperty($key);
-        return Instance::getAuthInstance()->hasAccessAttribute($reflection);
+        if (preg_match(self::SET_REGEX, $name, $matches) ||
+            preg_match(self::GET_REGEX, $name, $matches)) {
+            $return = $method->invoke($this, $arguments);
+            return $return;
+        }
+        return $method->invoke($this, $arguments);
     }
 
     public function jsonSerialize() {
         return $this->toArray();
     }
 
-
     function toArray() {
         $properties = [];
-        foreach ($this->reflection->getMethods() as $method) {
-            $methodName = $method->getName();
-            if ($method->getDeclaringClass()->getName() == $this->reflection->getName()
-                && preg_match("/^get([A-Za-z]+)/", $methodName, $matches))
-                $properties[lcfirst($matches[1])] =
-                    $this->__call($methodName, array());
+        /** @var \Zend_Reflection_Method $method */
+        foreach ($this->properties as $name => $property) {
+            $methodName = sprintf("get%s", ucfirst($name));
+            if (!$this->class->hasMethod($methodName))
+                $properties[$name] = $this->class->getProperty($name)->getValue($this);
+            else
+                $properties[$name] = $this->class->getMethod($methodName)->invoke($this);
         }
         return $properties;
+    }
+
+    public function fromArray($properties) {
+        foreach ($properties as $name => $value) {
+            $methodName = sprintf("set%s", ucfirst($name));
+            if (!$this->class->hasMethod($methodName))
+                $this->class->getProperty($name)->setValue($this, $value);
+            else
+                $this->class->getMethod($methodName)->invokeArgs($this, [$value]);
+        }
+    }
+
+
+    public function from($properties) {
+        foreach ($properties as $name => $value)
+            $this->class->getProperty($name)->setValue($this, $value);
+        $this->isCreated = true;
+    }
+
+    public function getPrimaryKey() {
+        return $this->id;
+    }
+
+    /** Event */
+    private function newEvent($name) {
+
     }
 }

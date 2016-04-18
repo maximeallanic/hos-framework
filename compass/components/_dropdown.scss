@@ -1,0 +1,38 @@
+.background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+
+  > .dropdown > .item {
+    margin: 0 0;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+}
+
+.dropdown {
+  position: relative;
+
+  > a {
+  }
+
+  &.content {
+    z-index: 1601;
+    top: 0;
+    flex-direction: column;
+    position: absolute;
+    padding: 10px;
+    background-color: white;
+    @include box-shadow($shadow);
+    @include transition(all 0.2s);
+    display: flex;
+    overflow: auto;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+}

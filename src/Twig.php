@@ -9,6 +9,7 @@
 namespace Hos;
 
 
+use Assetic\Asset\AssetCollection;
 use Assetic\Asset\FileAsset;
 use Assetic\Asset\GlobAsset;
 use Assetic\AssetManager;
@@ -20,11 +21,11 @@ use Assetic\Factory\AssetFactory;
 use Assetic\Factory\LazyAssetManager;
 use Assetic\Factory\Worker\CacheBustingWorker;
 use Assetic\Filter\CompassFilter;
+use Assetic\Filter\UglifyJs2Filter;
 use Assetic\Filter\Yui\CssCompressorFilter;
 use Assetic\Filter\Yui\JsCompressorFilter;
 use Assetic\FilterManager;
 use Hos\Twig\Extensions;
-use MatTheCat\Twig\Extension\WhitespaceCollapser;
 use Twig_Environment;
 use Twig_Extension_Optimizer;
 use Twig_Extension_Sandbox;
@@ -40,16 +41,21 @@ class Twig
     function __construct()
     {
         $am = new AssetManager();
-        $am->set('js', new FileAsset(Option::ASSET_DIR));
-        $am->set('css', new GlobAsset(Option::ASSET_DIR));
+        $am->set('vendor', new AssetCollection(array(
+            new FileAsset(Option::VENDOR_JAVASCRIPT_DIR."main.js"),
+            new GlobAsset(Option::VENDOR_JAVASCRIPT_DIR."**/*.js")
+        )));
 
         $fm = new FilterManager();
         $compassFilter = new CompassFilter(Option::get()['bin']['compass']);
         $compassFilter->addLoadPath(Option::VENDOR_COMPASS_DIR);
         $compassFilter->setCacheLocation(Option::TEMPORARY_DIR);
+        //$compassFilter->setNoCache(true);
+        $compassFilter->setTimeout(300000);
         $fm->set('compass', $compassFilter);
         $fm->set('yui_css', new CssCompressorFilter(Option::get()['bin']['yuicompressor']));
-        $fm->set('yui_js', new JSCompressorFilter(Option::get()['bin']['yuicompressor']));
+        $uglify = new UglifyJs2Filter(Option::get()['bin']['uglify']);
+        $fm->set('uglify', $uglify);
 
         $this->factory = new AssetFactory(Option::ASSET_DIR);
         $this->factory->setAssetManager($am);
@@ -77,6 +83,7 @@ class Twig
 
 
         $this->twig->addGlobal('api', new Api());
+        $this->twig->addGlobal('app', new Option());
         //$this->twig->addExtension(new WhitespaceCollapser(['twig', 'html', 'svg', 'xml']));
         $this->twig->addExtension(new AsseticExtension($this->factory));
         $this->twig->addExtension(new Twig_Extension_Optimizer());

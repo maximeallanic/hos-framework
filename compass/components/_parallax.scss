@@ -1,0 +1,22 @@
+.parallax-container {
+  @include transform-style(preserve-3d);
+
+  .parallax {
+    max-height: 50vh;
+    overflow: hidden;
+
+    &:not([slideshow]) > *, &[slideshow] .background{
+      @include transform-style(preserve-3d);
+      position: relative;
+      z-index: -1;
+      @include transform(translateZ(-1px) scale(2.1) translateY(-6%));
+      @include transform-origin(top center);
+      min-height: 70vh;
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      top: 0;
+      width: 100%;
+    }
+  }
+}

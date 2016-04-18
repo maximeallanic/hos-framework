@@ -1,0 +1,8 @@
+[ng-view] {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  overflow-y: auto;
+  @include perspective(1px);
+  @include perspective-origin(center);
+}
