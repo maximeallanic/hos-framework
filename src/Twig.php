@@ -50,6 +50,11 @@ class Twig
         $compassFilter = new CompassFilter(Option::get()['bin']['compass']);
         $compassFilter->addLoadPath(Option::VENDOR_COMPASS_DIR);
         $compassFilter->setCacheLocation(Option::TEMPORARY_DIR);
+
+        if (!Option::isDev()) {
+            $compassFilter->setNoLineComments(true);
+            $compassFilter->setDebugInfo(false);
+        }
         //$compassFilter->setNoCache(true);
         $compassFilter->setTimeout(300000);
         $fm->set('compass', $compassFilter);
