@@ -77,15 +77,15 @@ class Route
 
         /** Configuration */
         $rest->setAPIVersion(1);
-        $rest->setBaseUrl(Option::getBaseUrl()."/api/");
+        $rest->setBaseUrl(Option::getBaseUrl()."/api");
         //$rest->setSupportedFormats('XmlFormat', 'JsonFormat');
 
         //$rest->addAPIClass("Resources");
-        $rest->addAPIClass('Hos\\Translator');
+        $rest->addApi('Hos\\Translator');
 
         /** Insert All PHP Class */
         foreach (Option::get()['api'] as $class)
-            $rest->addAPIClass($class);
+            $rest->addApi($class);
 
         /** Start */
         return $rest->handle($request);

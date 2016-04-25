@@ -3,6 +3,8 @@
 namespace Hos\Model;
 use Cake\ORM\TableRegistry;
 use Hos\ExceptionExt;
+use Sabre\Xml\Writer;
+use Zend\Stdlib\JsonSerializable;
 
 /**
  * Created by PhpStorm.
@@ -10,7 +12,7 @@ use Hos\ExceptionExt;
  * Date: 10/04/16
  * Time: 17:36
  */
-class Model
+class Model implements Serializable
 {
     CONST SET_REGEX = "/^(?:set|add)(?<name>[A-Za-z])+/";
     CONST GET_REGEX = "/^get(?<name>[A-Za-z])+/";
@@ -119,7 +121,12 @@ class Model
         return $this->toArray();
     }
 
-    function toArray() {
+    function xmlSerialize(Writer $writer)
+    {
+        $writer->write($this->toArray());
+    }
+
+    public function toArray() {
         $properties = [];
         /** @var \Zend_Reflection_Method $method */
         foreach ($this->properties as $name => $property) {

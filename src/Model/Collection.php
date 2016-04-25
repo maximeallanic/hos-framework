@@ -55,19 +55,27 @@ class Collection
         $this->collections = TableRegistry::get($this->model->getShortName());
     }
 
-    private function dataToModel($data) {
+    protected function dataToModel($data) {
         $model = $this->model->newInstance();
         $model->from($data);
         return $model;
     }
 
-    private function datasToModel($datas) {
+    protected function datasToModel($datas) {
         foreach ($datas as &$data)
             $data = $this->dataToModel($data);
         return $datas;
     }
 
 
+    /**
+     * @api / {"method":"GET"}
+     * @param array $orderBy
+     * @param array $filterBy
+     * @param int $limit
+     * @param int $startAt
+     * @return mixed
+     */
     public function findAll($orderBy = [], $filterBy = [], $limit = -1, $startAt = 0) {
         $query = $this->collections->find();
         if ($limit >= 0)
@@ -79,7 +87,11 @@ class Collection
         return $this->datasToModel($query->getIterator());
     }
 
-    public function find() {
+    /**
+     * @api /{id} {"method":"GET"}
+     * @param string $id {"type":"path"} Id of Entity
+     */
+    public function find($id) {
 
     }
 }

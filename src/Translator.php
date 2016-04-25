@@ -24,6 +24,11 @@ class Translator
             mkdir(self::TRANSLATION_DIR);
     }
 
+    /**
+     * @api / {"method":"GET"} Get all Translations from actual or specific Language
+     * @param string $lang {query} Description
+     * @return array
+     */
     public function getTranslations($lang = null) {
 
         if (!$lang)
@@ -43,7 +48,7 @@ class Translator
     }
 
     /**
-     * @api
+     * @api /use {"method":"GET"}
      */
     function get() {
         if (isset($_COOKIE[self::COOKIE]))
@@ -54,15 +59,17 @@ class Translator
     }
 
     /**
-     * @url POST
+     * @api /use {"method":"POST"}
+     * @param string $lang {"type":"query"} The language to use on the server
+     * @return bool
      */
     function set($lang) {
         return setcookie(self::COOKIE, $lang, time()+(60*60*24*30));
     }
 
     /**
-     * @api
-     * @param $code
+     * @api /translate {"method":"GET"} Get Translation
+     * @param string $code {"type":"query"} Code of Translation
      * @return string
      */
     function translate($code) {
@@ -72,10 +79,10 @@ class Translator
 
 
     /**
-     * @url POST translate/add
-     * @param $code
-     * @param $lang
-     * @param $message
+     * @api /translate {"method":"POST"} Add Translation
+     * @param string $code {"type":"body"} Code Of Translation
+     * @param string $lang {"type":"body"} Code Of Lang
+     * @param string $message {"type":"body"} Message
      * @return bool
      */
     function addTranslation($code, $lang, $message) {

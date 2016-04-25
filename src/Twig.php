@@ -102,7 +102,6 @@ class Twig
             'interpolation' => $optionsLexer['interpolation'],
         ));
         $this->twig->setLexer($lexer);
-
     }
 
     function render($file, $array = []) {

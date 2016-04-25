@@ -32,14 +32,13 @@ try {
     /** Route */
     $route = new \Hos\Route();
 
-    $endTime = microtime(true);
-
-    Header::add('Time-Execution', ($endTime - $startTime)."s");
+    $out = $route->dispatch();
+    $timeExecution = ((microtime(true) - $startTime));
+    Header::add('Time-Execution', $timeExecution."s");
     Header::add('Server', 'Hos');
 
-    echo $route->dispatch();
-
 } catch(ExceptionExt $e) {
-    echo $e->render();
+    $out = $e->render();
 }
 
+echo $out;
