@@ -1,8 +1,9 @@
-[slideshow] {
+[slider] {
   position: relative;
   @include transform-style(flat);
   width: 100%;
   overflow: hidden;
+
 
   > div {
     position: absolute;
@@ -61,5 +62,19 @@
     &.next {
       right: 0;
     }
+  }
+}
+
+body > [slider] {
+  position: absolute;
+  z-index: 300;
+  @include transition(all 0.5s ease-in-out 0s);
+
+  &:not(.ng-enter):not(.ng-leave-active) {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: black !important;
   }
 }

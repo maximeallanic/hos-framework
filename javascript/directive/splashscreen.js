@@ -15,7 +15,11 @@
                     $(document).ready(function () {
                         console.log('loaded');
                         $rootScope.$apply(function () {
-                           $animate.leave(element);
+                           $animate.leave(element).then(function () {
+                               if (attrs.splashscreenEnd != undefined)
+                                   scope.$eval(attrs.splashscreenEnd);
+                           });
+
                         });
 
                     });

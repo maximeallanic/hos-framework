@@ -4,10 +4,10 @@
 (function () {
     'use strict';
      angular.module('hos-framework')
-     .directive('slideshow', slideshow);
+     .directive('slider', slider);
 
-     slideshow.$inject = ['$q', '$templateRequest', '$animate', '$compile', '$timeout', '$icon'];
-     function slideshow($q, $templateRequest, $animate, $compile, $timeout, $icon) {
+     slider.$inject = ['$q', '$templateRequest', '$animate', '$compile', '$timeout', '$icon', '$onLoad'];
+     function slider($q, $templateRequest, $animate, $compile, $timeout, $icon, $onLoad) {
          var getTemplate = function(template, templateUrl) {
              var deferredTemplate = $q.defer();
              if (template) {
@@ -21,65 +21,123 @@
              return deferredTemplate.promise;
          };
 
+         var generateSlideFromOption = function (option) {
+             var container = $('<div></div>');
+             container.loader = $q.defer();
+             if (option.template !== false) {
+                 var d = $("<div></div>").addClass('content').append(template);
+                 container.append(d);
+             }
+             if (option.background) {
+                 var background = $('<div>&nbsp;</div>')
+                     .addClass('background')
+                     .css({'background-image': 'url(' + option.background + ')'});
+                 container.append(background);
+             }
+             container.addClass('slide');
+             container.loaded = $onLoad.element(container);
+             return container;
+         };
+
         return {
             restrict: 'A',
             scope: {
-                slideshow: '='
+                slider: '=',
+                sliderNavigation: '@',
+                sliderPauseDuration: '=',
+                sliderAutoHeight: '='
             },
             link: function ($scope, element, attrs) {
 
-
-                var slideshows = [];
+                var slides = [];
                 var $i = 0;
                 var timeout;
-                var promise = [];
-                var timeoutMS = 4000;
                 var manualMode = false;
-                var maxHeight = 0;
+                var fullscreenElement = false;
 
-                angular.forEach($scope.slideshow, function (slideshow, key) {
-
-                    getTemplate(slideshow.template, slideshow.templateUrl).then(function (template) {
-                        var container = $('<div></div>');
-                        if (template !== false) {
-                            var d = $("<div></div>").addClass('content').append(template);
-                            container.append(d);
+                function onChange(newValue, oldValue) {
+                    var deferBase = $q.defer();
+                    var defer = deferBase;
+                    if (typeof newValue !== 'object')
+                        newValue = [];
+                    console.log(newValue);
+                    angular.forEach(newValue, function (slide, key) {
+                        if (element.find('#' + key).length <= 0) {
+                            var deferSlide = $q.defer();
+                            defer = $q.all([defer, deferSlide]);
+                            getTemplate(slide.template, slide.templateUrl).then(function (template) {
+                                slide.template = template;
+                                var slideElement = generateSlideFromOption(slide);
+                                $compile(slideElement)($scope);
+                                slideElement.attr('id', "#" + key);
+                                slideElement.click(toggleFullscreen);
+                                element.append(slideElement);
+                                deferSlide.resolve();
+                            }, deferSlide.reject);
                         }
-                        if (slideshow.background) {
-                            var background = $('<div>&nbsp;</div>')
-                                .addClass('background')
-                                .css({'background-image': 'url(' + slideshow.background + ')'});
-                            container.append(background);
-                        }
-                        slideshows.push(container);
-                        element.append(container);
-                        $compile(container)($scope);
-
-                        if (key === 0)
-                            toNext();
                     });
-                });
-
-                if (attrs.slideshowNaviguation != undefined && $scope.slideshow.length > 1) {
-                    var next = $('<span class="next"></span>');
-                    $icon.set(next, 'angle-right');
-                    var previous = $('<span class="previous"></span>');
-                    $icon.set(previous, 'angle-left');
-                    previous.click(setManualMode).click(function () {
-                        $scope.$apply(toPrevious);
-                    });
-                    next.click(setManualMode).click(function () {
-                        $scope.$apply(toNext);
-                    });
-                    element.prepend(previous);
-                    element.append(next);
+                    deferBase.resolve();
+                    return defer.promise;
                 }
 
-                if (attrs.slideshowPauseTime != undefined) {
-                    timeoutMS = parseInt(attrs.slideshowPauseTime);
+                function initilializeSlideshow(options) {
+                    if (options.slideshowNaviguation != undefined) {
+                        var next = $('<span class="next"></span>');
+                        $icon.set(next, 'angle-right');
+                        var previous = $('<span class="previous"></span>');
+                        $icon.set(previous, 'angle-left');
+                        previous.click(setManualMode).click(toPrevious);
+                        next.click(setManualMode).click(toNext);
+                        element.prepend(previous);
+                        element.append(next);
+                    }
+                }
+
+                function initializeFullscreen() {
+                    fullscreenElement = element.clone();
+                    fullscreenElement.addClass('fullscreen');
+                    fullscreenElement.css({
+                        left: element.offset().left,
+                        top: element.offset().top,
+                        width: element.width(),
+                        height: element.height()
+                    });
+                    fullscreenElement.find('.next').click(setManualMode).click(toNext);
+                    fullscreenElement.find('.previous').click(setManualMode).click(toPrevious);
+                    fullscreenElement.find('.slide').click(toggleFullscreen).each(function () {
+
+                    });
+                    $animate.addClass(element, 'hidden');
+                    $animate.enter(fullscreenElement, $(document.body));
+                }
+
+                /** Leave Fullscreen **/
+                function leaveFullscreen() {
+                    fullscreenElement.css({
+                        left: element.offset().left,
+                        top: element.offset().top,
+                        width: element.width(),
+                        height: element.height()
+                    });
+                    $animate.leave(fullscreenElement).then(function () {
+                        $animate.removeClass(element, 'hidden');
+                    });
+
+                }
+
+                /** Toogle Fullscreen **/
+                function toggleFullscreen() {
+                    $scope.$apply(function () {
+                        if (fullscreenElement === undefined || fullscreenElement.parent().length <= 0)
+                            initializeFullscreen();
+                        else
+                            leaveFullscreen();
+                        setManualMode();
+                    });
                 }
 
 
+                /** Stop auto playing **/
                 function setManualMode() {
                     if (!manualMode) {
                         manualMode = true;
@@ -88,32 +146,63 @@
                 }
 
                 function to(isNext) {
-                    $animate.removeClass(slideshows[$i], 'visible');
+                    /** If there are no slides **/
+                    if (slides.length <= 0)
+                        return ;
+
+                    /** For first Slide **/
+                    if (slides[$i].hasClass('visible'))
+                        $animate.removeClass(slides[$i], 'visible');
+
+                    /** Mechanical **/
                     if (isNext) {
                         $i++;
-                        if ($i >= slideshows.length)
+                        if ($i >= slides.length)
                             $i = 0;
                     }
                     else {
                         $i--;
                         if ($i < 0)
-                            $i = slideshows.length - 1;
+                            $i = slides.length - 1;
                     }
-                    if (attrs.slideshowAutoHeight !== undefined)
-                        element.css({ 'height': slideshows[$i].height() + 'px'});
-                    $animate.addClass(slideshows[$i], 'visible').then(function (){
-                        if (!manualMode)
-                            timeout = $timeout(isNext ? toNext : toPrevious, timeoutMS);
+
+                    /** Launch when next Slide is Loaded **/
+                    slides[$i].then(function () {
+
+                        /** Auto Height **/
+                        if ($scope.sliderAutoHeight !== undefined)
+                            element.css({ 'height': slides[$i].height() + 'px'});
+
+                        /** Display Next Slide **/
+                        $animate.addClass(slides[$i], 'visible').then(function (){
+                            if (!manualMode) {
+                                var timeoutMS = 4000;
+                                if (options.slideshowPauseTime != undefined)
+                                    timeoutMS = parseInt($scope.slideshowPauseTime);
+                                timeout = $timeout(isNext ? toNext : toPrevious, timeoutMS);
+                            }
+                        });
                     });
+
                 }
 
+                /** Ink for to(true) **/
                 function toNext() {
                     to(true);
+                    if ($scope.$$phase)
+                        $scope.$apply();
                 }
 
+                /** Ink for to(false) **/
                 function toPrevious() {
                     to(false);
+                    if ($scope.$$phase)
+                        $scope.$apply();
                 }
+
+                $scope.$watch('slider', onChange);
+                onChange([], $scope.slider).then(toNext);
+                initilializeSlideshow($scope);
 
             }
         };
