@@ -10,6 +10,7 @@ $startTime = microtime(true);
 
 require_once "../../autoload.php";
 
+use Hos\Stats\Visitor;
 use Hos\BDD;
 use Hos\ExceptionExt;
 use Hos\Header;
@@ -28,6 +29,9 @@ try {
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
     }
+
+    /** Stats */
+    Visitor::addVisitor();
 
     /** Route */
     $route = new \Hos\Route();

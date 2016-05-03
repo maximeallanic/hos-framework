@@ -1,5 +1,5 @@
 [splashscreen] {
-  z-index: 300;
+  z-index: 400;
 }
 
 .background {
@@ -8,5 +8,9 @@
 
 .navbar {
   z-index: 200;
+}
+
+.notification {
+  z-index: 300;
 }
 

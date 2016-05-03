@@ -49,7 +49,6 @@
                         containerScroll.scrollTo(0, scroll);
                     else
                         containerScroll.animate({scrollTop: scroll}, 700);
-                    console.log("clicked");
                 });
                 if (attrs.scrollSpyDisableInspect != undefined)
                     return ;

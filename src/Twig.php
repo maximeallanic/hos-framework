@@ -25,6 +25,7 @@ use Assetic\Filter\UglifyJs2Filter;
 use Assetic\Filter\Yui\CssCompressorFilter;
 use Assetic\Filter\Yui\JsCompressorFilter;
 use Assetic\FilterManager;
+use Hos\Stats\Stats;
 use Hos\Twig\Extensions;
 use Twig_Environment;
 use Twig_Extension_Optimizer;
@@ -89,6 +90,7 @@ class Twig
 
         $this->twig->addGlobal('api', new Api());
         $this->twig->addGlobal('app', new Option());
+        $this->twig->addGlobal('stat', new Stats());
         //$this->twig->addExtension(new WhitespaceCollapser(['twig', 'html', 'svg', 'xml']));
         $this->twig->addExtension(new AsseticExtension($this->factory));
         $this->twig->addExtension(new Twig_Extension_Optimizer());

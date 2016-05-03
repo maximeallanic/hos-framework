@@ -99,6 +99,8 @@ class Route
             "cache" => Option::TEMPORARY_ASSET_DIR,
             "watermarks" => Option::ASSET_DIR
         ]);
+        if (!isset($_GET['q']))
+            $_GET['q'] = 50;
         $cachedPath = $service->makeImage($file, $_GET);
         $mimeType = MimeType::detectByFilename($file);
         Header::add("Content-Type", $mimeType);

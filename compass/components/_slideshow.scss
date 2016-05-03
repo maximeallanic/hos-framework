@@ -5,6 +5,7 @@
   overflow: hidden;
 
 
+
   > div {
     position: absolute;
     left: 0;
@@ -47,6 +48,16 @@
     }
   }
 
+  &:not(.fullscreen) {
+    &:not(.hidden) {
+      @include transition(opacity 0.1s 0.2s);
+    }
+    &.hidden {
+      //visibility: hidden;
+      opacity: 0 !important;
+    }
+  }
+
   > span {
     position: absolute;
     z-index: 150;
@@ -68,13 +79,4 @@
 body > [slider] {
   position: absolute;
   z-index: 300;
-  @include transition(all 0.5s ease-in-out 0s);
-
-  &:not(.ng-enter):not(.ng-leave-active) {
-    left: 0 !important;
-    top: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background-color: black !important;
-  }
 }

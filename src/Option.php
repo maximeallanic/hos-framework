@@ -8,6 +8,8 @@
  */
 namespace Hos;
 
+use Hos\Stats\Visitor;
+use ReflectionClass;
 use Zend\Config\Config;
 use Zend\Config\Reader;
 use Zend\Config\Writer;
@@ -48,12 +50,18 @@ class Option
 
     CONST USER = "web";
     CONST ROOT_DIR = ROOT_DIR;
+
     CONST APP_DIR = self::ROOT_DIR . "app/";
     CONST LOG_DIR = self::APP_DIR . "log/";
     CONST CONF_DIR = self::APP_DIR . "conf/";
-    CONST ASSET_DIR = self::ROOT_DIR . "asset/";
+    CONST STAT_DIR = self::APP_DIR . "stat/";
     CONST TEMPORARY_DIR = self::APP_DIR . "tmp/";
+
     CONST TEMPORARY_ASSET_DIR = self::TEMPORARY_DIR ."asset/";
+
+    CONST CONF_FILE = self::CONF_DIR . "parameter.yaml";
+
+    CONST ASSET_DIR = self::ROOT_DIR . "asset/";
     CONST PROJECT_DIR = self::ROOT_DIR . "src/";
 
     CONST VENDOR_DIR = VENDOR_DIR;
@@ -61,8 +69,6 @@ class Option
     CONST VENDOR_API_DOC_DIR = self::VENDOR_DIR . "doc/";
     CONST VENDOR_WEB_DIR = self::VENDOR_DIR . "web/";
     CONST VENDOR_JAVASCRIPT_DIR = self::VENDOR_DIR . "javascript/";
-
-    CONST CONF_FILE = self::CONF_DIR . "parameter.yaml";
 
     CONST WRITE_MODE = 0777;
 
@@ -73,6 +79,10 @@ class Option
 
     static function get() {
         if (!self::$reader) {
+            $class = new ReflectionClass(__CLASS__);
+            foreach ($class->getConstants() as $constantName => $constantValue)
+                if (preg_match("/_DIR$/", $constantName) && !file_exists($constantValue))
+                    mkdir($constantValue);
             self::$reader = new Reader\Yaml();
             if (!file_exists(self::CONF_FILE))
                 throw new ExceptionExt("No Conf File", "error/no_conf.twig", ['dir' => Option::CONF_FILE, 'parameter' => self::getDefaultYaml()]);

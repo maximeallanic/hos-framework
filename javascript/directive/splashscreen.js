@@ -7,21 +7,14 @@
     angular.module('hos-framework')
         .directive('splashscreen', splashscreen);
 
-    splashscreen.$inject = ['$rootScope', '$animate', '$timeout'];
-    function splashscreen($rootScope, $animate, $timeout) {
+    splashscreen.$inject = ['$rootScope', '$animate', '$timeout', '$media'];
+    function splashscreen($rootScope, $animate, $timeout, $media) {
         return {
             link: function (scope, element, attrs, ngModel) {
+                element.addClass('splashscreen');
                 $timeout(function () {
-                    $(document).ready(function () {
-                        console.log('loaded');
-                        $rootScope.$apply(function () {
-                           $animate.leave(element).then(function () {
-                               if (attrs.splashscreenEnd != undefined)
-                                   scope.$eval(attrs.splashscreenEnd);
-                           });
-
-                        });
-
+                    $media.onDocumentComplete(function () {
+                        $animate.leave(element);
                     });
                 }, attrs.delay);
             }

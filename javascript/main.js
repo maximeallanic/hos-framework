@@ -5,7 +5,8 @@
     'use strict';
 
     angular.module('hos-framework', [
-        'ngAnimate'
+        'ngAnimate',
+        'ngTouch'
     ]);
 
 })();

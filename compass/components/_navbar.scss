@@ -3,7 +3,6 @@ $navbar-height: 45px !default;
   min-height: $navbar-height;
   background-color: white;
   @extend .layout-row;
-  @extend .layout-align-space-between-stretch;
 
   > .logo {
     margin: 0;

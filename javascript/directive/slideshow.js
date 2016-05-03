@@ -6,8 +6,8 @@
      angular.module('hos-framework')
      .directive('slider', slider);
 
-     slider.$inject = ['$q', '$templateRequest', '$animate', '$compile', '$timeout', '$icon', '$onLoad'];
-     function slider($q, $templateRequest, $animate, $compile, $timeout, $icon, $onLoad) {
+     slider.$inject = ['$q', '$templateRequest', '$animate', '$compile', '$timeout', '$icon', '$onLoad', '$handle', '$media'];
+     function slider($q, $templateRequest, $animate, $compile, $timeout, $icon, $onLoad, $handle, $media) {
          var getTemplate = function(template, templateUrl) {
              var deferredTemplate = $q.defer();
              if (template) {
@@ -53,35 +53,47 @@
                 var $i = 0;
                 var timeout;
                 var manualMode = false;
-                var fullscreenElement = false;
+
+                function loadSlide(slide, key) {
+                    var deferSlide = $q.defer();
+                    if (element.find('#' + key).length <= 0) {
+                        getTemplate(slide[key].template, slide[key].templateUrl).then(function (template) {
+                            slide[key].template = template;
+                            var slideElement = generateSlideFromOption(slide[key]);
+                            $compile(slideElement)($scope);
+                            slideElement.attr('id', "#" + key);
+                            slides.push(slideElement);
+                            if (key == 0)
+                                toNext();
+                            key++;
+                            if (slide[key] != undefined) {
+                                slideElement.loaded.then(function () {
+                                    loadSlide(slide, key).then(deferSlide.resolve);
+                                }, deferSlide.reject);
+
+                            }
+                        }, deferSlide.reject);
+                    }
+                    else
+                        deferSlide.resolve();
+
+                    return deferSlide.promise;
+
+                }
 
                 function onChange(newValue, oldValue) {
-                    var deferBase = $q.defer();
-                    var defer = deferBase;
+                    var defer = $q.defer();
                     if (typeof newValue !== 'object')
                         newValue = [];
-                    console.log(newValue);
-                    angular.forEach(newValue, function (slide, key) {
-                        if (element.find('#' + key).length <= 0) {
-                            var deferSlide = $q.defer();
-                            defer = $q.all([defer, deferSlide]);
-                            getTemplate(slide.template, slide.templateUrl).then(function (template) {
-                                slide.template = template;
-                                var slideElement = generateSlideFromOption(slide);
-                                $compile(slideElement)($scope);
-                                slideElement.attr('id', "#" + key);
-                                slideElement.click(toggleFullscreen);
-                                element.append(slideElement);
-                                deferSlide.resolve();
-                            }, deferSlide.reject);
-                        }
-                    });
-                    deferBase.resolve();
+                    if (newValue.length > 0)
+                        loadSlide(newValue, 0).then(defer.resolve);
+                    else
+                        defer.resolve();
                     return defer.promise;
                 }
 
-                function initilializeSlideshow(options) {
-                    if (options.slideshowNaviguation != undefined) {
+                function initialiseSlider() {
+                    if ($scope.sliderNavigation != undefined) {
                         var next = $('<span class="next"></span>');
                         $icon.set(next, 'angle-right');
                         var previous = $('<span class="previous"></span>');
@@ -91,48 +103,26 @@
                         element.prepend(previous);
                         element.append(next);
                     }
-                }
 
-                function initializeFullscreen() {
-                    fullscreenElement = element.clone();
-                    fullscreenElement.addClass('fullscreen');
-                    fullscreenElement.css({
-                        left: element.offset().left,
-                        top: element.offset().top,
-                        width: element.width(),
-                        height: element.height()
+                    $handle.onSwipeLeft(element, function () {
+                        setManualMode();
+                        toPrevious();
                     });
-                    fullscreenElement.find('.next').click(setManualMode).click(toNext);
-                    fullscreenElement.find('.previous').click(setManualMode).click(toPrevious);
-                    fullscreenElement.find('.slide').click(toggleFullscreen).each(function () {
-
+                    $handle.onSwipeRight(element, function () {
+                        setManualMode();
+                        toNext();
                     });
-                    $animate.addClass(element, 'hidden');
-                    $animate.enter(fullscreenElement, $(document.body));
-                }
-
-                /** Leave Fullscreen **/
-                function leaveFullscreen() {
-                    fullscreenElement.css({
-                        left: element.offset().left,
-                        top: element.offset().top,
-                        width: element.width(),
-                        height: element.height()
-                    });
-                    $animate.leave(fullscreenElement).then(function () {
-                        $animate.removeClass(element, 'hidden');
-                    });
-
                 }
 
                 /** Toogle Fullscreen **/
                 function toggleFullscreen() {
-                    $scope.$apply(function () {
-                        if (fullscreenElement === undefined || fullscreenElement.parent().length <= 0)
-                            initializeFullscreen();
-                        else
-                            leaveFullscreen();
-                        setManualMode();
+                    var defer = !element.hasClass('fullscreen') ?
+                        $animate.addClass(element, 'fullscreen') :
+                        $animate.removeClass(element, 'fullscreen');
+                    $scope.$apply();
+                    return defer.then(function () {
+                        slides[$i].off('click');
+                        slides[$i].click(toggleFullscreen);
                     });
                 }
 
@@ -145,65 +135,96 @@
                     }
                 }
 
-                function to(isNext) {
-                    /** If there are no slides **/
-                    if (slides.length <= 0)
-                        return ;
+                function to(iterator) {
+                    var defer = $q.defer();
 
-                    /** For first Slide **/
-                    if (slides[$i].hasClass('visible'))
-                        $animate.removeClass(slides[$i], 'visible');
+                    /** If there are no slides or Slide is not ready **/
+                    if (slides.length <= 0
+                        || slides[iterator] === undefined
+                        || slides[iterator].attr('id') === undefined
+                        || slides[iterator].hasClass('ng-leave')
+                        || slides[iterator].hasClass('ng-enter'))
+                        defer.reject();
 
-                    /** Mechanical **/
-                    if (isNext) {
-                        $i++;
-                        if ($i >= slides.length)
-                            $i = 0;
-                    }
                     else {
-                        $i--;
-                        if ($i < 0)
-                            $i = slides.length - 1;
+                        /** Launch when next Slide is Loaded **/
+                        slides[iterator].loaded.then(function () {
+
+                            var deferAnimate = [];
+
+                            /** Get Slide on Slider **/
+                            var visible = element.find('.slide');
+
+                            /** If Slide is Visible, Reject **/
+                            if (visible.attr('id') === slides[iterator].attr('id'))
+                                return defer.reject();
+
+                            /** Hide Previous Slide **/
+                            if (visible.length > 0)
+                                deferAnimate.push($animate.leave(visible));
+
+                            /** Auto Height **/
+                            if ($scope.sliderAutoHeight !== undefined)
+                                element.css({'height': slides[iterator].height() + 'px'});
+
+                            /** Display Next Slide **/
+                            deferAnimate.push($animate.enter(slides[iterator], element));
+
+                            ($q.all(deferAnimate)).then(defer.resolve, defer.reject);
+
+                            /** Set Fullscreen on Click **/
+                            slides[iterator].click(toggleFullscreen);
+
+                        }, defer.reject);
                     }
-
-                    /** Launch when next Slide is Loaded **/
-                    slides[$i].then(function () {
-
-                        /** Auto Height **/
-                        if ($scope.sliderAutoHeight !== undefined)
-                            element.css({ 'height': slides[$i].height() + 'px'});
-
-                        /** Display Next Slide **/
-                        $animate.addClass(slides[$i], 'visible').then(function (){
-                            if (!manualMode) {
-                                var timeoutMS = 4000;
-                                if (options.slideshowPauseTime != undefined)
-                                    timeoutMS = parseInt($scope.slideshowPauseTime);
-                                timeout = $timeout(isNext ? toNext : toPrevious, timeoutMS);
-                            }
-                        });
-                    });
-
+                    return defer.promise;
                 }
 
-                /** Ink for to(true) **/
+                /** Next **/
                 function toNext() {
-                    to(true);
+                    $i++;
+                    if ($i >= slides.length)
+                        $i = 0;
+                    var defer = to($i).then(function () {
+                        element.removeClass('load');
+                        if (!manualMode) {
+                            var timeoutMS = 4000;
+                            if ($scope.sliderPauseDuration != undefined)
+                                timeoutMS = parseInt($scope.sliderPauseDuration);
+                            timeout = $timeout(toNext, timeoutMS);
+                        }
+                    });
                     if ($scope.$$phase)
                         $scope.$apply();
+                    return defer;
                 }
 
-                /** Ink for to(false) **/
+                /** Previous **/
                 function toPrevious() {
-                    to(false);
+                    $i--;
+                    if ($i < 0)
+                        $i = slides.length - 1;
+                    var defer = to($i).then(function () {
+                        if (!manualMode) {
+                            var timeoutMS = 4000;
+                            if ($scope.sliderPauseDuration != undefined)
+                                timeoutMS = parseInt($scope.sliderPauseDuration);
+                            timeout = $timeout(toPrevious, timeoutMS);
+                        }
+                    });
                     if ($scope.$$phase)
                         $scope.$apply();
+                    return defer;
                 }
 
-                $scope.$watch('slider', onChange);
-                onChange([], $scope.slider).then(toNext);
-                initilializeSlideshow($scope);
+                element.addClass('slider');
+                element.addClass('load');
 
+                $media.onDocumentComplete(function () {
+                    $scope.$watch('slider', onChange);
+                    onChange([], $scope.slider);
+                    initialiseSlider($scope);
+                });
             }
         };
     }

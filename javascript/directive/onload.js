@@ -28,22 +28,22 @@
     function onLoadService($q) {
         this.element = function (element) {
             var baseDefer = $q.defer();
-            var defer = baseDefer;
+            var defer = baseDefer.promise;
 
             /** Image **/
-            var images = element.find('img');
+            var images = element.find('img[src]');
             if (images.length > 0) {
                 var imagesDefer = $q.defer();
                 var imagesIterator = 0;
                 images.error(defer.reject).load(function () {
                     imagesIterator++;
                     if (imagesIterator == images.length)
-                        defer.resolve();
+                        imagesDefer.resolve();
                 }).each(function () {
                     if (this.complete)
                         $(this).load();
                 });
-                defer = $q.all([defer, imagesDefer]);
+                defer = $q.all([defer, imagesDefer.promise]);
             }
 
             /** Background Image **/
@@ -54,30 +54,34 @@
                     return document.defaultView.getComputedStyle(this,null)
                             .getPropertyValue('background-image') !== 'none';
             });
-            console.log(backgroundImages);
             if (backgroundImages.length > 0) {
                 var backgroundImageDefer = $q.defer();
                 var backgroundImageIterator = 0;
                 backgroundImages.load(function () {
-                    console.log(backgroundImageIterator);
                     backgroundImageIterator++;
                     if (backgroundImageIterator >= backgroundImages.length)
-                        backgroundImages.resolve();
+                        backgroundImageDefer.resolve();
                 }).each(function () {
                     var bg = $(this).css('background-image');
+                    bg = bg.replace('url("','').replace('")','');
+                    bg = bg.replace('url(\'','').replace('\')','');
                     bg = bg.replace('url(','').replace(')','');
                     var image = new Image();
                     image.src = bg;
+                    var e = $(this);
                     if (image.complete)
-                        $(this).load();
-                    image.addEventListener('load', $(this).load);
+                        e.load();
+
+                    image.addEventListener('load', function () {
+                        e.load();
+                    });
                     image.addEventListener('error', backgroundImageDefer.reject);
                 });
-                defer = $q.all([defer, backgroundImageDefer]);
+                defer = $q.all([defer, backgroundImageDefer.promise]);
             }
 
             baseDefer.resolve();
-            return defer.promise;
+            return defer;
         };
 
         return this;
