@@ -6,7 +6,7 @@
  * Time: 14:59
  */
 
-require_once __DIR__."/../vendor/autoload.php";
+require_once __DIR__."/../../../autoload.php";
 
 use Hos\ExceptionExt;
 use Hos\Log;
@@ -45,19 +45,14 @@ try {
     /** PostgreSQL */
     echo "Start PostgreSQL\n";
     Log::info(shell_exec("service postgresql start"));
-    echo "Wait PostgreSQL\n";
     do {
         sleep(1);
         exec("sudo -i -u postgres psql -c \"SELECT datname FROM pg_database\" > /dev/null 2>&1", $output, $return);
     } while ($return);
-    echo "PostgreSQL Started\n";
 
     /** PHP */
-    $file = "/etc/php/7.0/fpm/pool.d/www.conf";
-    $str = file_get_contents($file);
-    $str = str_replace("www-data", Option::USER,$str);
-    file_put_contents($file, $str);
     echo "Start Php7.0\n";
+    if (!file_exists("/run/php"))
     mkdir("/run/php");
     Log::info(shell_exec("/usr/sbin/php-fpm7.0 -c ".Option::VENDOR_CONF_DIR."/php/php.ini -D"));
 

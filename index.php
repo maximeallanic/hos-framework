@@ -10,6 +10,7 @@ $startTime = microtime(true);
 
 require_once "../../autoload.php";
 
+use Hos\Log;
 use Hos\Stats\Visitor;
 use Hos\BDD;
 use Hos\ExceptionExt;
@@ -36,13 +37,14 @@ try {
     /** Route */
     $route = new \Hos\Route();
 
-    $out = $route->dispatch();
+    //$out = $route->dispatch();
     $timeExecution = ((microtime(true) - $startTime));
     Header::add('Time-Execution', $timeExecution."s");
     Header::add('Server', 'Hos');
 
 } catch(ExceptionExt $e) {
     $out = $e->render();
+    Log::error($e->getMessage());
 }
 
 echo $out;
