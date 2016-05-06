@@ -59,6 +59,8 @@ class Option
 
     CONST TEMPORARY_ASSET_DIR = self::TEMPORARY_DIR ."asset/";
 
+    CONST NGINX_LOG_DIR = self::LOG_DIR . "nginx/";
+
     CONST CONF_FILE = self::CONF_DIR . "parameter.yaml";
 
     CONST ASSET_DIR = self::ROOT_DIR . "asset/";
@@ -79,10 +81,6 @@ class Option
 
     static function get() {
         if (!self::$reader) {
-            $class = new ReflectionClass(__CLASS__);
-            foreach ($class->getConstants() as $constantName => $constantValue)
-                if (preg_match("/_DIR$/", $constantName) && !file_exists($constantValue))
-                    mkdir($constantValue);
             self::$reader = new Reader\Yaml();
             if (!file_exists(self::CONF_FILE))
                 throw new ExceptionExt("No Conf File", "error/no_conf.twig", ['dir' => Option::CONF_FILE, 'parameter' => self::getDefaultYaml()]);
