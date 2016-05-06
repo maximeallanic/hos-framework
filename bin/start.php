@@ -59,7 +59,7 @@ try {
     file_put_contents($file, $str);
     echo "Start Php7.0\n";
     mkdir("/run/php");
-    Log::info(shell_exec("/usr/sbin/php-fpm7.0 -c ".Option::CONF_DIR."/php/php.ini -D"));
+    Log::info(shell_exec("/usr/sbin/php-fpm7.0 -c ".Option::VENDOR_CONF_DIR."/php/php.ini -D"));
 
 
     /** NGINX */
@@ -73,7 +73,7 @@ try {
         $directive,
         array_keys($directive)
     ));
-    Log::info(shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c /var/www/app/conf/nginx/dev.conf"));
+    Log::info(shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c ".Option::VENDOR_CONF_DIR."/nginx/dev.conf"));
 
     /*
     echo "Start Cron\n";

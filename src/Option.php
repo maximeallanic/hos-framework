@@ -71,6 +71,7 @@ class Option
     CONST VENDOR_API_DOC_DIR = self::VENDOR_DIR . "doc/";
     CONST VENDOR_WEB_DIR = self::VENDOR_DIR . "web/";
     CONST VENDOR_JAVASCRIPT_DIR = self::VENDOR_DIR . "javascript/";
+    CONST VENDOR_CONF_DIR = self::VENDOR_DIR . "conf/";
 
     CONST WRITE_MODE = 0777;
 
