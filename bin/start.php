@@ -8,6 +8,7 @@
 
 require_once __DIR__."/../../../autoload.php";
 
+use Hos\Command\Base\Command;
 use Hos\ExceptionExt;
 use Hos\Log;
 use Hos\Option;
@@ -35,7 +36,6 @@ function createBDD($name, $user) {
 
 /** Wait Postgre Starting */
 try {
-    $options = Option::get();
 
     $class = new ReflectionClass(Option::class);
     foreach ($class->getConstants() as $constantName => $constantValue)
@@ -43,32 +43,37 @@ try {
             mkdir($constantValue);
 
     /** PostgreSQL */
-    echo "Start PostgreSQL\n";
-    Log::info(shell_exec("service postgresql start"));
-    do {
-        sleep(1);
-        exec("sudo -i -u postgres psql -c \"SELECT datname FROM pg_database\" > /dev/null 2>&1", $output, $return);
-    } while ($return);
+    Command::displayTask("Start PostgreSQL", function () {
+        Log::info(shell_exec("service postgresql start"));
+        do {
+            sleep(1);
+            exec("sudo -i -u postgres psql -c \"SELECT datname FROM pg_database\" > /dev/null 2>&1", $output, $return);
+        } while ($return);
+    }) ?: die();
+
 
     /** PHP */
-    echo "Start Php7.0\n";
-    if (!file_exists("/run/php"))
-    mkdir("/run/php");
-    Log::info(shell_exec("/usr/sbin/php-fpm7.0 -c ".Option::VENDOR_CONF_DIR."/php/php.ini -D"));
+    Command::displayTask("Start PHP 7.0", function () {
+        if (!file_exists("/run/php"))
+            mkdir("/run/php");
+        Log::info(shell_exec("/usr/sbin/php-fpm7.0 -c ".Option::VENDOR_CONF_DIR."/php/php.ini -D"));
+    }) ?: die();
 
 
     /** NGINX */
-    echo "Start Nginx\n";
-    $directive = [
-        "DOMAIN" => $options['domain'],
-        "DEV" => Option::isDev() ? '1' : '0'
-    ];
-    $env = implode(' ', array_map(
-        function ($v, $k) { return sprintf("%s=%s", $k, $v); },
-        $directive,
-        array_keys($directive)
-    ));
-    Log::info(shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c ".Option::VENDOR_CONF_DIR."/nginx/dev.conf"));
+    Command::displayTask("Start NGINX", function () {
+        $options = Option::get();
+        $directive = [
+            "DOMAIN" => $options['domain'],
+            "DEV" => Option::isDev() ? '1' : '0'
+        ];
+        $env = implode(' ', array_map(
+            function ($v, $k) { return sprintf("%s=%s", $k, $v); },
+            $directive,
+            array_keys($directive)
+        ));
+        Log::info(shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c ".Option::VENDOR_CONF_DIR."/nginx/dev.conf"));
+    });
 
     /*
     echo "Start Cron\n";
@@ -79,5 +84,5 @@ try {
 	//createBDD($options['db'], $options['user']);
     //echo shell_exec("lsof -nP -i | grep LISTEN");*/
 } catch (ExceptionExt $e) {
-    echo "$e->getMessage()\n";
+    Command::error($e->getMessage());
 }
