@@ -59,7 +59,11 @@ class Option
 
     CONST TEMPORARY_ASSET_DIR = self::TEMPORARY_DIR ."asset/";
 
+    CONST LOG_FILE = self::LOG_DIR . "dev.log";
+
     CONST NGINX_LOG_DIR = self::LOG_DIR . "nginx/";
+    CONST NGINX_LOG_ACCESS_FILE = self::NGINX_LOG_DIR . "access.log";
+    CONST NGINX_LOG_ERROR_FILE = self::NGINX_LOG_DIR . "error.log";
 
     CONST CONF_FILE = self::CONF_DIR . "parameter.yaml";
 

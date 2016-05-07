@@ -38,30 +38,33 @@ function createBDD($name, $user) {
 try {
 
     $class = new ReflectionClass(Option::class);
-    foreach ($class->getConstants() as $constantName => $constantValue)
+    foreach ($class->getConstants() as $constantName => $constantValue) {
         if (preg_match("/_DIR$/", $constantName) && !file_exists($constantValue))
             mkdir($constantValue);
+        if (preg_match("/_FILE$/", $constantName) && !file_exists($constantValue))
+            touch($constantValue);
+        chmod($constantValue, 777);
+    }
 
-    /** PostgreSQL */
+    /** PostgreSQL 
     Command::displayTask("Start PostgreSQL", function () {
         Log::info(shell_exec("service postgresql start"));
         do {
             sleep(1);
             exec("sudo -i -u postgres psql -c \"SELECT datname FROM pg_database\" > /dev/null 2>&1", $output, $return);
         } while ($return);
-    }) ?: die();
+    }) ?: die();*/
 
 
     /** PHP */
-    Command::displayTask("Start PHP 7.0", function () {
+        echo "Start PHP\n";
         if (!file_exists("/run/php"))
             mkdir("/run/php");
         Log::info(shell_exec("/usr/sbin/php-fpm7.0 -c ".Option::VENDOR_CONF_DIR."/php/php.ini -D"));
-    }) ?: die();
 
 
     /** NGINX */
-    Command::displayTask("Start NGINX", function () {
+        echo "Start Nginx\n";
         $options = Option::get();
         $directive = [
             "DOMAIN" => $options['domain'],
@@ -72,17 +75,16 @@ try {
             $directive,
             array_keys($directive)
         ));
-        Log::info(shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c ".Option::VENDOR_CONF_DIR."/nginx/dev.conf"));
-    });
+        echo shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c ".Option::VENDOR_CONF_DIR."nginx/dev.conf");
 
-    /*
     echo "Start Cron\n";
     Log::info(shell_exec("service cron start"));
-
+/*
     //$options = Option::get()['database'];
     //createUser($options['user'], $options['password']);
 	//createBDD($options['db'], $options['user']);
     //echo shell_exec("lsof -nP -i | grep LISTEN");*/
 } catch (ExceptionExt $e) {
     Command::error($e->getMessage());
+
 }

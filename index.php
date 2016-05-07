@@ -37,7 +37,7 @@ try {
     /** Route */
     $route = new \Hos\Route();
 
-    //$out = $route->dispatch();
+    $out = $route->dispatch();
     $timeExecution = ((microtime(true) - $startTime));
     Header::add('Time-Execution', $timeExecution."s");
     Header::add('Server', 'Hos');

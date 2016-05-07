@@ -25,15 +25,15 @@ class Command
     }
 
     static function displayTask($taskName, $fn) {
-        system("setterm -cursor off");
+        //system("setterm -cursor off");
         echo "[\033[33;5m$taskName\033[0m]\r";
-
+    
         $result = $fn();
         if ($result)
             echo "[\033[32;5m$taskName\033[0m]\n";
         else
             echo "[\033[31;5m$taskName\033[0m]\n";
-        system("setterm -cursor on");
+        //system("setterm -cursor on");
         return $result;
     }
 
