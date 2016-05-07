@@ -8,7 +8,7 @@
 
 $startTime = microtime(true);
 
-require_once "../../autoload.php";
+require_once "../../../autoload.php";
 
 use Hos\Log;
 use Hos\Stats\Visitor;
@@ -40,7 +40,7 @@ try {
     $out = $route->dispatch();
     $timeExecution = ((microtime(true) - $startTime));
     Header::add('Time-Execution', $timeExecution."s");
-    Header::add('Server', 'Hos');
+    Header::add('Server', 'Hos 0.0.1');
 
 } catch(ExceptionExt $e) {
     $out = $e->render();

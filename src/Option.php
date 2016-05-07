@@ -56,6 +56,7 @@ class Option
     CONST CONF_DIR = self::APP_DIR . "conf/";
     CONST STAT_DIR = self::APP_DIR . "stat/";
     CONST TEMPORARY_DIR = self::APP_DIR . "tmp/";
+    CONST SSL_DIR = self::APP_DIR . "ssl/";
 
     CONST TEMPORARY_ASSET_DIR = self::TEMPORARY_DIR ."asset/";
 
@@ -76,6 +77,7 @@ class Option
     CONST VENDOR_WEB_DIR = self::VENDOR_DIR . "web/";
     CONST VENDOR_JAVASCRIPT_DIR = self::VENDOR_DIR . "javascript/";
     CONST VENDOR_CONF_DIR = self::VENDOR_DIR . "conf/";
+    CONST VENDOR_BIN_DIR = self::VENDOR_DIR . "bin/";
 
     CONST WRITE_MODE = 0777;
 

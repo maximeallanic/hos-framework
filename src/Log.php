@@ -9,6 +9,7 @@
 namespace Hos;
 
 
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
@@ -20,8 +21,14 @@ class Log
     private static function init() {
         /** Log */
         self::$logger = new Logger('hos');
-        $logFile = Option::LOG_DIR.Option::get()['environment'].".log";
-        self::$logger->pushHandler(new StreamHandler($logFile, Logger::WARNING));
+        $logFile = Option::LOG_DIR."dev.log";
+
+        $dateFormat = "Y-m-d G:i:s";
+        $output = "[%datetime%](%level_name%)\t%message%\n";
+        $formatter = new LineFormatter($output, $dateFormat);
+        $streamHandler = new StreamHandler($logFile, Option::isDev() ? Logger::INFO : Logger::ALERT);
+        $streamHandler->setFormatter($formatter);
+        self::$logger->pushHandler($streamHandler);
     }
 
     static function alert($message, $params = []) {

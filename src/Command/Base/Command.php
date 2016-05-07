@@ -9,6 +9,7 @@
 namespace Hos\Command\Base;
 
 
+use Hos\Log;
 use League\CLImate\CLImate;
 
 class Command
@@ -25,15 +26,27 @@ class Command
     }
 
     static function displayTask($taskName, $fn) {
-        //system("setterm -cursor off");
-        echo "[\033[33;5m$taskName\033[0m]\r";
+        $term = getenv("TERM");
+
+        !$term ?: system("setterm -cursor off");
+
+        echo "[\033[33;5m$taskName\033[0m]";
+        echo $term ? "\r" : "\t";
     
         $result = $fn();
+
         if ($result)
-            echo "[\033[32;5m$taskName\033[0m]\n";
+            echo $term ? "[\033[32;5m$taskName\033[0m]\n" : "\e[32;5mOK\e[0m\n";
         else
-            echo "[\033[31;5m$taskName\033[0m]\n";
-        //system("setterm -cursor on");
+            echo $term ? "[\033[31;5m$taskName\033[0m]\n" : "\e[31;5mERROR\e[0m\n";
+
+        !$term ?: system("setterm -cursor on");
+
+        if (!$result) {
+            Log::error($result);
+            die(1);
+        }
+
         return $result;
     }
 

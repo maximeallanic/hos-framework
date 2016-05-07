@@ -6,9 +6,8 @@
  * Time: 20:33
  */
 
-require_once __DIR__."/../vendor/autoload.php";
+require_once __DIR__."/../../../autoload.php";
 
-use Framework\Library\Backup;
 use Hos\Log;
 use Hos\Option;
 
@@ -44,6 +43,7 @@ function getEvents()
     return $eventsProcess;
 }
 
+Log::info("Start Minutely");
 $events = Option::get()['events'];
 $eventsProcess = getEvents();
 try {

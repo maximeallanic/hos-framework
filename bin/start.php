@@ -43,8 +43,12 @@ try {
             mkdir($constantValue);
         if (preg_match("/_FILE$/", $constantName) && !file_exists($constantValue))
             touch($constantValue);
-        chmod($constantValue, 777);
     }
+
+    exec("chown -R web:nogroup " . Option::APP_DIR);
+    exec("chmod 0777 -R " . Option::APP_DIR);
+    exec("chown -R web:nogroup " . Option::ASSET_DIR);
+    exec("chmod 0777 -R " . Option::ASSET_DIR);
 
     /** PostgreSQL 
     Command::displayTask("Start PostgreSQL", function () {
@@ -55,16 +59,18 @@ try {
         } while ($return);
     }) ?: die();*/
 
-
     /** PHP */
-        echo "Start PHP\n";
+    Command::displayTask("Start PHP", function () {
         if (!file_exists("/run/php"))
             mkdir("/run/php");
-        Log::info(shell_exec("/usr/sbin/php-fpm7.0 -c ".Option::VENDOR_CONF_DIR."/php/php.ini -D"));
+        shell_exec("/usr/sbin/php-fpm7.0 -c " . Option::VENDOR_CONF_DIR . "/php/php.ini -D");
+        return true;
+    });
 
 
     /** NGINX */
-        echo "Start Nginx\n";
+    Command::displayTask("Start NGINX", function () {
+        shell_exec("openssl rand 48 > " . Option::SSL_DIR . "session.key");
         $options = Option::get();
         $directive = [
             "DOMAIN" => $options['domain'],
@@ -75,10 +81,13 @@ try {
             $directive,
             array_keys($directive)
         ));
-        echo shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c ".Option::VENDOR_CONF_DIR."nginx/dev.conf");
+        shell_exec("env $env /usr/local/openresty/nginx/sbin/nginx -c ".Option::VENDOR_CONF_DIR."nginx/dev.conf");
+        return true;
+    });
 
-    echo "Start Cron\n";
-    Log::info(shell_exec("service cron start"));
+    Command::displayTask("Start CRON", function () {
+        return shell_exec("service cron start") != null;
+    });
 /*
     //$options = Option::get()['database'];
     //createUser($options['user'], $options['password']);
@@ -86,5 +95,4 @@ try {
     //echo shell_exec("lsof -nP -i | grep LISTEN");*/
 } catch (ExceptionExt $e) {
     Command::error($e->getMessage());
-
 }

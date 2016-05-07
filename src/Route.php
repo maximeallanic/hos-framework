@@ -52,6 +52,10 @@ class Route
             return false;
         $mimeType = MimeType::detectByFilename($file);
         Header::add("Content-Type", $mimeType);
+        Header::add("Pragma", "public");
+        Header::add("Cache-Control", "public");
+        Header::add("Expires", date('r', time() + 604800));
+        Header::add("Last-Modified", date('r', filemtime($file)));
         return file_get_contents($file);
     }
 
@@ -59,6 +63,10 @@ class Route
         if (!file_exists(Option::ASSET_DIR.$file.".twig"))
             return false;
         Header::add("Content-Type", "text/html");
+        Header::add("Pragma", "public");
+        Header::add("Cache-Control", "public");
+        Header::add("Expires", date('r', time() + 604800));
+        Header::add("Last-Modified", date('r', filemtime(Option::ASSET_DIR.$file.".twig")));
         $twig = new Twig();
         return $twig->render($file.".twig");
     }
@@ -104,6 +112,10 @@ class Route
         $cachedPath = $service->makeImage($file, $_GET);
         $mimeType = MimeType::detectByFilename($file);
         Header::add("Content-Type", $mimeType);
+        Header::add("Pragma", "public");
+        Header::add("Cache-Control", "public");
+        Header::add("Expires", date('r', time() + 604800));
+        Header::add("Last-Modified", date('r', filemtime(Option::ASSET_DIR.$file)));
         return file_get_contents(Option::TEMPORARY_ASSET_DIR.$cachedPath);
     }
 

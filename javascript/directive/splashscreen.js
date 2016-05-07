@@ -14,7 +14,7 @@
                 element.addClass('splashscreen');
                 $timeout(function () {
                     $media.onDocumentComplete(function () {
-                        $animate.leave(element);
+                       $animate.leave(element);
                     });
                 }, attrs.delay);
             }
