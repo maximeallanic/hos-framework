@@ -85,6 +85,9 @@
                         toNext();
                     });
 
+                    if (!Array.isArray($scope.slider))
+                        $scope.slider = [];
+
                     toNext();
                 }
 
@@ -108,9 +111,6 @@
 
                 function to(iterator) {
                     var defer = $q.defer();
-
-                    if (!Array.isArray($scope.slider))
-                        $scope.slider = [];
 
                     /** If there are no slides or Slide is not ready **/
                     if ($scope.slider.length <= 0

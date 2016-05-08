@@ -16,4 +16,5 @@ html, body {
   min-height: 100vh;
   max-height: 100vh;
   overflow: hidden;
+  @include transform(translateZ(0));
 }
