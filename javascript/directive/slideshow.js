@@ -109,8 +109,11 @@
                 function to(iterator) {
                     var defer = $q.defer();
 
+                    if (!Array.isArray($scope.slider))
+                        $scope.slider = [];
+
                     /** If there are no slides or Slide is not ready **/
-                    if (slider.length <= 0
+                    if ($scope.slider.length <= 0
                         || $scope.slider[iterator] === undefined)
                         defer.reject();
 
