@@ -173,7 +173,7 @@
                             var timeoutMS = 4000;
                             if ($scope.sliderPauseDuration != undefined)
                                 timeoutMS = parseInt($scope.sliderPauseDuration);
-                           // timeout = $timeout(toNext, timeoutMS);
+                            timeout = $timeout(toNext, timeoutMS);
                         }
                     });
                     if ($scope.$$phase)
