@@ -55,6 +55,7 @@ class Twig
         if (!Option::isDev()) {
             $compassFilter->setNoLineComments(true);
             $compassFilter->setDebugInfo(false);
+            $compassFilter->setStyle("production");
         }
         //$compassFilter->setNoCache(true);
         $compassFilter->setTimeout(300000);

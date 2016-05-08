@@ -9,6 +9,7 @@
 namespace Hos\Stats;
 
 use DateTime;
+use Hos\Log;
 use Hos\Option;
 use stdClass;
 
@@ -53,9 +54,12 @@ class Visitor
                     $years[$year][$month][] = $visitor;
                 }
 
-                foreach ($years as &$year)
-                    $year = count($year) + 1;
 
+                foreach ($years as &$year) {
+                    foreach ($year as &$month)
+                        $month = count($month);
+                    $year = array_sum($year) / count($year);
+                }
                 return array_sum($years) / count($years);
             }
         ];
