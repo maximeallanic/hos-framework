@@ -61,7 +61,7 @@
             link: function ($scope, element, attrs) {
 
                 var $i = 0;
-                var timeout;
+                var timeout = false;
                 var manualMode = false;
 
                 function initialiseSlider() {
@@ -88,7 +88,14 @@
                     if (!Array.isArray($scope.slider))
                         $scope.slider = [];
 
-                    toNext();
+                    if ($scope.slider.length <= 0) {
+                        $scope.$watch("slider", function () {
+                            if (!timeout && $scope.slider.length > 0)
+                                toNext();
+                        });
+                    }
+                    else
+                        toNext();
                 }
 
                 /** Toogle Fullscreen **/
@@ -109,7 +116,7 @@
                     }
                 }
 
-                function to(iterator) {
+                function to(iterator, noLoader) {
                     var defer = $q.defer();
 
                     /** If there are no slides or Slide is not ready **/
@@ -127,7 +134,7 @@
                             var visible = element.find('.slide');
 
                             /** Hide Previous Slide **/
-                            if (visible.length > 0)
+                            if (!noLoader && visible.length > 0)
                                 deferAnimate.push($animate.leave(visible));
 
                             /** Auto Height **/
@@ -138,15 +145,20 @@
                             var onLoad = $onLoad.element(slide);
                             onLoad.then(function () {
                                 element.removeClass('load');
+                                if (noLoader && visible.length > 0)
+                                    deferAnimate.push($animate.leave(visible));
+                                if (noLoader)
+                                    deferAnimate.push($animate.enter(slide, element));
                             });
                             deferAnimate.push(onLoad);
-                            if (onLoad.$$state.status != 1 && !element.hasClass('load'))
+                            if (!noLoader && onLoad.$$state.status != 1 && !element.hasClass('load'))
                                 /** Add Load **/
                                 element.addClass('load');
 
 
-                            /** Display Next Slide **/
-                            deferAnimate.push($animate.enter(slide, element));
+                            if (!noLoader)
+                                /** Display Next Slide **/
+                                deferAnimate.push($animate.enter(slide, element));
 
                             $q.all(deferAnimate).then(defer.resolve, defer.reject).then(function () {
                                 /** Set Fullscreen on Click **/
@@ -168,7 +180,7 @@
                     $i++;
                     if ($i >= $scope.slider.length)
                         $i = 0;
-                    var defer = to($i).then(function () {
+                    var defer = to($i, !manualMode).then(function () {
                         if (!manualMode) {
                             var timeoutMS = 4000;
                             if ($scope.sliderPauseDuration != undefined)
@@ -186,7 +198,7 @@
                     $i--;
                     if ($i < 0)
                         $i = $scope.slider.length - 1;
-                    var defer = to($i).then(function () {
+                    var defer = to($i, false).then(function () {
                         if (!manualMode) {
                             var timeoutMS = 4000;
                             if ($scope.sliderPauseDuration != undefined)
