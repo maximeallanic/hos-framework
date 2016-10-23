@@ -34,6 +34,11 @@
                      .css({'background-image': 'url(' + option.background + ')'});
                  container.append(background);
              }
+             else {
+                 var img = $('<img/>');
+                 img.attr('src', option.url);
+                 container.append(img);
+             }
              container.addClass('slide');
              container.loaded = $onLoad.element(container);
              return container;
@@ -70,10 +75,14 @@
                         $icon.set(next, 'angle-right');
                         var previous = $('<span class="previous"></span>');
                         $icon.set(previous, 'angle-left');
+                        var mosaic = $('<span class="mosaic"></span>');
+                        $icon.set(mosaic, 'align-justify');
+                        mosaic.click(setManualMode).click(toMosaic);
                         previous.click(setManualMode).click(toPrevious);
                         next.click(setManualMode).click(toNext);
                         element.prepend(previous);
                         element.append(next);
+                        element.append(mosaic);
                     }
 
                     $handle.onSwipeLeft(element, function () {
@@ -105,6 +114,33 @@
                         $animate.removeClass(element, 'fullscreen');
                     $scope.$apply();
                     return defer;
+                }
+
+                /** Display Mosaic **/
+                function toMosaic() {
+                    var closeButton = $('<span class="close"></span>');
+                    $icon.set(closeButton, 'times-circle');
+                    var mosaic = $('<div class="mosaic"><span class="layout-row flex-wrap"></span></div>');
+                    mosaic.append(closeButton);
+                    closeButton.click(function () {
+                        $animate.leave(mosaic);
+                    });
+                    $animate.enter(mosaic, $('body'));
+                    angular.forEach($scope.slider, function (slider, i) {
+                        slider = angular.copy(slider);
+                        slider.url = slider.background;
+                        slider.background = false;
+                        getSlide(slider, $scope).then(function (slide) {
+                            mosaic.find('span:not(.close)').append(slide);
+                            slide.click(function () {
+                                console.log(i);
+                                to(i, false);
+                                toggleFullscreen();
+                            })
+                        });
+                    });
+
+
                 }
 
 

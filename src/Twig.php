@@ -62,7 +62,7 @@ class Twig
         $fm->set('compass', $compassFilter);
         $fm->set('yui_css', new CssCompressorFilter(Option::get()['bin']['yuicompressor']));
         $uglify = new UglifyJs2Filter(Option::get()['bin']['uglify']);
-        $fm->set('uglify', $uglify);
+        //$fm->set('uglify', $uglify);
 
         $this->factory = new AssetFactory(Option::ASSET_DIR);
         $this->factory->setAssetManager($am);

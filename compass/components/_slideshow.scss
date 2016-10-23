@@ -75,10 +75,54 @@
     &.next {
       right: 0;
     }
+
+    &.mosaic {
+      bottom: 0;
+      width: 100%;
+      height: 20px;
+      top: 85%;
+      fill: white;
+      @include filter(drop-shadow(0 0 5px black));
+      opacity: 0.6;
+    }
   }
 }
 
 body > [slider] {
   position: absolute;
   z-index: 300;
+}
+
+body > .mosaic {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  position: absolute;
+  background-color: #1b2426;
+  z-index: 203;
+  overflow-y: auto;
+  bottom: 0;
+
+  > .close {
+    position: fixed;
+    right: 10px;
+    top: 10px;
+    color: white;
+    z-index: 250;
+    fill: white;
+    @include filter(drop-shadow(0 0 5px black));
+  }
+
+  > span {
+    > .slide {
+      height: inherit;
+      width: inherit;
+      cursor: pointer;
+      > img {
+        height: 200px;
+        width: auto;
+      }
+
+    }
+  }
 }

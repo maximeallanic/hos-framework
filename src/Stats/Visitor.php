@@ -26,6 +26,8 @@ class Visitor
         $visitors[$key] = [
             'time' => date('c')
         ];
+        if (!file_exists(Option::STAT_DIR))
+            mkdir(Option::STAT_DIR, 0777, true);
         file_put_contents(self::STAT_FILE, json_encode($visitors));
     }
 

@@ -136,7 +136,11 @@ $columns: getAllLayoutColumns() !default;
 }
 
 @include applyBreakpoints(flex) {
-  @include flex(1 1 100%);
+     @include flex(1 1 100%);
+}
+
+@include applyBreakpoints(flex-wrap) {
+  @include flex-wrap(wrap);
 }
 
 @include applyBreakpoints(hide) {
